@@ -21,7 +21,7 @@ then
 fi
 sudo cp -r ../sources/* /opt/searx
 sudo virtualenv /opt/searx
-sudo bash -c "source /opt/searx/bin/activate && pip install -r requirements.txt"
+sudo bash -c "source /opt/searx/bin/activate && pip install -r /opt/searx/requirements.txt"
 
 #Configuration Searx
 sudo cp ../conf/settings.yml /opt/searx/
