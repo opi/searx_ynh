@@ -17,9 +17,9 @@ sudo apt-get install git build-essential libxslt-dev python-dev python-virtualen
 # Init virtualenv
 if [ ! -d /opt/searx ];
 then
-	mkdir /opt/searx
+	sudo mkdir /opt/searx
 fi
-cp ../sources/* /opt/searx
+sudo cp -r ../sources/* /opt/searx
 sudo virtualenv /opt/searx
 sudo bash -c "source /opt/searx/bin/activate && pip install -r requirements.txt"
 
