@@ -12,14 +12,14 @@ exit 1
 fi
 
 # Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev -y
 
 # Init virtualenv
 if [ ! -d /opt/searx ];
 then
 	mkdir /opt/searx
 fi
-cp sources/* /opt/searx
+cp ../sources/* /opt/searx
 sudo virtualenv /opt/searx
 sudo bash -c "source /opt/searx/bin/activate && pip install -r requirements.txt"
 
