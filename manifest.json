@@ -5,7 +5,7 @@
         "en": "A privacy-respecting, hackable metasearch engine"
     },
     "developer": {
-        "name": "beudbeud"
+        "name": "beudbeud",
 	"email": "beudbeud@beudibox.fr",
         "url": "https://github.com/asciimoo/searx/"
     },
