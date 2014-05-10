@@ -28,7 +28,8 @@ sudo cp ../conf/settings.yml /opt/searx/searx/
 sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
 
 # Set permissions to searx directory
-#sudo chown -R www-data. /opt/searx/
+sudo useradd searx -d /opt/searx
+sudo chown searx:searx -R /opt/searx
 
 # Copy uwsgi config
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
