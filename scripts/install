@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Retrieve arguments
+domain=$1
+path=$2
+
+# Check domain/path availability
+sudo yunohost app checkurl $domain$path -a searx
+sudo yunohost app setting searx skipped_uris -v "$path"
+if [[ ! $? -eq 0 ]]; then
+exit 1
+fi
+
+# Check depends installation
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev
+
+# Init virtualenv
+sudo virtualenv /searx
+sudo bash -c "source /opt/searx/bin/activate && pip install -r requirements.txt"
+
+#Configuration Searx
+sudo cp ../conf/settings.yml /opt/searx/
+sudo sed -i "s@CHANGEPATH@$path@g" /opt/searx/settings.yml
+
+# Set permissions to searx directory
+#sudo chown -R www-data. /opt/searx/
+
+# Copy uwsgi config
+sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
+sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
+
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
+sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/searx.conf
+
+# Fix permission
+#sudo chmod 755 /etc/searx/
+#sudo find /opt/yunohost/searx/ -type d -exec chmod 2755 {} \;
+#sudo find /opt/yunohost/searx/ -type f -exec chmod g+r,o+r {} \;
+#sudo chmod 644 /etc/searx/*
+
+## Reload Nginx and regenerate SSOwat conf
+sudo service nginx reload
+sudo service uwsgi restart
+#sudo yunohost app setting searx skipped_uris -v "/"
+sudo yunohost app ssowatconf

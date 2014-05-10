@@ -1,0 +1,32 @@
+{
+    "name": "Searx",
+    "id": "searx",
+    "description": {
+        "en": "A privacy-respecting, hackable metasearch engine"
+    },
+    "developer": {
+        "name": "beudbeud"
+	"email": "beudbeud@beudibox.fr",
+        "url": "https://github.com/asciimoo/searx/"
+    },
+    "multi_instance": "true",
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "ask": {
+                    "en": "Choose a domain for searx"
+                },
+                "example": "domain.org"
+            },
+            {
+                "name": "path",
+                "ask": {
+                    "en": "Choose a path for searx"
+                },
+                "example": "/searx",
+                "default": "/searx"
+            }
+        ]
+    }
+}
