@@ -15,7 +15,7 @@ fi
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev -y
 
 # Check Swap
-if [ $(swapon -s | wc -l) = 1 ];
+if [ $(sudo swapon -s | wc -l) = 1 ];
 then
 	sudo dd if=/dev/zero of=/tmp/myswapfile bs=1M count=1024
 	sudo chmod 600 /tmp/myswapfile
