@@ -26,7 +26,16 @@
                 },
                 "example": "/searx",
                 "default": "/searx"
+            },
+            {
+                "name": "public_site",
+                "ask": {
+                    "en": "Is it a public Searx ?"
+                },
+                "choices": ["Yes", "No"],
+                "default": "Yes"
             }
+
         ]
     }
 }
