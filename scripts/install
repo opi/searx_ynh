@@ -12,7 +12,7 @@ exit 1
 fi
 
 # Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi -y
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python -y
 
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
