@@ -1,0 +1,12 @@
+location = PATHTOCHANGE { rewrite ^ PATHTOCHANGE/; }
+location PATHTOCHANGE {
+        if ($scheme = http) {
+                rewrite ^ https://$server_name$request_uri? permanent;
+        }
+        try_files $uri @searx; }
+location @searx {
+        uwsgi_param SCRIPT_NAME PATHTOCHANGE;
+        include uwsgi_params;
+        uwsgi_modifier1 30;
+        uwsgi_pass unix:/run/uwsgi/app/searx/socket;
+}
