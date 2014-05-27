@@ -53,8 +53,13 @@ sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
 sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/searx.conf
+sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
+if [ $path != "/" ];
+then
+	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
+else
+	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/searx.conf
+fi
 
 # Fix permission
 #sudo chmod 755 /etc/searx/
