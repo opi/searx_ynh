@@ -7,13 +7,12 @@ is_public=$3
 
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a searx
-sudo yunohost app setting searx skipped_uris -v "$path"
 if [[ ! $? -eq 0 ]]; then
 exit 1
 fi
 
 # Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev -y
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi -y
 
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
