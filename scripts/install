@@ -25,13 +25,13 @@ fi
 	
 
 # Init virtualenv
-if [ ! -d /opt/searx ];
+if [ ! -d /opt/yunohost/searx ];
 then
-	sudo mkdir /opt/searx
+	sudo mkdir -p /opt/yunohost/searx
 fi
-sudo cp -r ../sources/* /opt/searx
-sudo virtualenv /opt/searx
-sudo bash -c "source /opt/searx/bin/activate && pip install -r /opt/searx/requirements.txt"
+sudo cp -r ../sources/* /opt/yunohost/searx
+sudo virtualenv /opt/yunohost/searx
+sudo bash -c "source /opt/yunohost/searx/bin/activate && pip install -r /opt/yunohost/searx/requirements.txt"
 
 # Disable swapfile
 if [ -f /tmp/myswapfile ];
@@ -43,15 +43,15 @@ fi
 #Configuration Searx
 if [ $path != "/" ];
 then
-	sudo cp ../conf/settings.yml-noroot /opt/searx/searx/settings.yml
+	sudo cp ../conf/settings.yml-noroot /opt/yunohost/searx/searx/settings.yml
 else
-	sudo cp ../conf/settings.yml /opt/searx/searx/
+	sudo cp ../conf/settings.yml /opt/yunohost/searx/searx/
 fi
-sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
+sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/yunohost/searx/searx/settings.yml
 
 # Set permissions to searx directory
-sudo useradd searx -d /opt/searx
-sudo chown searx:searx -R /opt/searx
+sudo useradd searx -d /opt/yunohost/searx
+sudo chown searx:searx -R /opt/yunohost/searx
 
 # Copy uwsgi config
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
@@ -67,8 +67,8 @@ else
 fi
 
 # Fix permission
-#sudo find /opt/searx/ -type d -exec chmod 2755 {} \;
-#sudo find /opt/searx/ -type f -exec chmod g+r,o+r {} \;
+#sudo find /opt/yunohost/searx/ -type d -exec chmod 2755 {} \;
+#sudo find /opt/yunohost/searx/ -type f -exec chmod g+r,o+r {} \;
 
 ## Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
