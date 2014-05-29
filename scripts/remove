@@ -2,10 +2,11 @@
 
 domain=$(sudo yunohost app setting searx domain)
 
-sudo rm -Rf /opt/searx
+sudo rm -Rf /opt/yunohost/searx
 sudo rm -f /etc/uwsgi/apps-enabled/searx.ini
 sudo rm -f /etc/uwsgi/apps-available/searx.ini
 sudo rm -f /etc/nginx/conf.d/$domain.d/searx.conf
+sudo userdel searx
 sudo service uwsgi stop
 sudo killall uwsgi
 sudo service uwsgi start
