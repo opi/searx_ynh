@@ -22,7 +22,7 @@ if [ -d /opt/searx ];
 then
   sudo mkdir -p /opt/yunohost/searx
   sudo mv /opt/searx /opt/yunohost/
-  sudo usermod -d /opt/yunohost/searx
+  sudo usermod -d /opt/yunohost/searx searx
   sudo chown searx:searx -R /opt/yunohost/searx
 fi
 
