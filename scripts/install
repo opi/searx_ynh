@@ -8,8 +8,10 @@ is_public=$3
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a searx
 if [[ ! $? -eq 0 ]]; then
-exit 1
+    exit 1
 fi
+
+sudo yunohost app setting searx is_public -v $is_public
 
 # Check depends installation
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python -y
