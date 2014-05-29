@@ -76,6 +76,8 @@ sudo service uwsgi restart
 
 if [ $is_public = "Yes" ];
 then
-sudo yunohost app setting searx skipped_uris -v "/"
+	sudo yunohost app setting searx skipped_uris -v "/"
+else
+	sudo sed -i 's/#include conf/include conf/' /etc/nginx/conf.d/$domain.d/searx.conf
 fi
 sudo yunohost app ssowatconf
