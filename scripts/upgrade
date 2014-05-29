@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Retrieve arguments
-domain=$(sudo yunohost app setting wordpress domain)
-path=$(sudo yunohost app setting wordpress path)
+domain=$(sudo yunohost app setting searx domain)
+path=$(sudo yunohost app setting searx path)
+is_public=$(sudo yunohost app setting searx is_public)
 
 
 # Check depends installation
@@ -39,6 +40,20 @@ if [ -f /tmp/myswapfile ];
 then
   sudo swapoff /tmp/myswapfile
   sudo rm -f /tmp/myswapfile
+fi
+
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
+if [ $path != "/" ];
+then
+sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
+else
+sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/searx.conf
+fi
+
+if [ $is_public = "No" ];
+then
+  sudo sed -i 's/#include conf/include conf/' /etc/nginx/conf.d/$domain.d/searx.conf
 fi
 
 ## Reload Nginx and regenerate SSOwat conf
