@@ -15,14 +15,16 @@
             {
                 "name": "domain",
                 "ask": {
-                    "en": "Choose a domain for searx"
+                    "en": "Choose a domain for Searx",
+                    "fr": "Choisissez un domaine pour Searx"
                 },
                 "example": "domain.org"
             },
             {
                 "name": "path",
                 "ask": {
-                    "en": "Choose a path for searx"
+                    "en": "Choose a path for Searx",
+                    "fr": "Choisissez un chemin pour Searx"
                 },
                 "example": "/searx",
                 "default": "/searx"
@@ -30,7 +32,8 @@
             {
                 "name": "public_site",
                 "ask": {
-                    "en": "Is it a public Searx ?"
+                    "en": "Is it a public Searx ?",
+                    "fr": "Est-ce un Searx est public ?"
                 },
                 "choices": ["Yes", "No"],
                 "default": "Yes"
