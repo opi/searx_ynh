@@ -2,7 +2,8 @@
     "name": "Searx",
     "id": "searx",
     "description": {
-        "en": "A privacy-respecting, hackable metasearch engine"
+        "en": "A privacy-respecting, hackable metasearch engine",
+        "fr": "Un méta-moteur de recherche respectueux de la vie privée et bidouillable" 
     },
     "developer": {
         "name": "beudbeud",
@@ -32,8 +33,8 @@
             {
                 "name": "public_site",
                 "ask": {
-                    "en": "Is it a public Searx ?",
-                    "fr": "Est-ce un Searx est public ?"
+                    "en": "Is it a public Searx site ?",
+                    "fr": "Est-ce un site public ?"
                 },
                 "choices": ["Yes", "No"],
                 "default": "Yes"
