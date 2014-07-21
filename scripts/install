@@ -44,7 +44,7 @@ fi
 #Configuration Searx
 sudo cp ../conf/settings.yml /opt/searx/searx/
 sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
-sudo sed -i -e "s@ynhbaseurl@https://$domain$path/g" /opt/searx/searx/settings.yml
+sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" /opt/searx/searx/settings.yml
 
 # Set permissions to searx directory
 sudo useradd searx -d /opt/searx
