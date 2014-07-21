@@ -9,7 +9,7 @@ is_public=$3
 sudo yunohost app checkurl $domain$path -a searx
 sudo yunohost app setting searx skipped_uris -v "$path"
 if [[ ! $? -eq 0 ]]; then
-exit 1
+	exit 1
 fi
 
 # Check depends installation
@@ -23,7 +23,7 @@ then
 	sudo mkswap /tmp/myswapfile
 	sudo swapon /tmp/myswapfile
 fi
-	
+
 
 # Init virtualenv
 if [ ! -d /opt/searx ];
@@ -42,13 +42,9 @@ then
 fi
 
 #Configuration Searx
-if [ $path != "/" ];
-then
-	sudo cp ../conf/settings.yml-noroot /opt/searx/searx/settings.yml
-else
-	sudo cp ../conf/settings.yml /opt/searx/searx/
-fi
+sudo cp ../conf/settings.yml /opt/searx/searx/
 sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
+sudo sed -i -e "s@ynhbaseurl@https://$domain$path/g" /opt/searx/searx/settings.yml
 
 # Set permissions to searx directory
 sudo useradd searx -d /opt/searx
@@ -60,7 +56,7 @@ sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
-if [ $path != "/" ];
+if [ "$path" != "/" ];
 then
 	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
 else
@@ -75,8 +71,8 @@ fi
 sudo service nginx reload
 sudo service uwsgi restart
 
-if [ $is_public = "Yes" ];
+if [ "$is_public" = "Yes" ];
 then
-sudo yunohost app setting searx skipped_uris -v "/"
+	sudo yunohost app setting searx skipped_uris -v "/"
 fi
 sudo yunohost app ssowatconf
