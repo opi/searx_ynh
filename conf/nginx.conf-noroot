@@ -8,14 +8,8 @@ location @searx {
         uwsgi_param SCRIPT_NAME PATHTOCHANGE;
         include uwsgi_params;
         uwsgi_modifier1 30;
-<<<<<<< HEAD
         uwsgi_pass unix:///run/uwsgi/app/searx/socket;
-        # Include SSOWAT user panel.
-        #include conf.d/yunohost_panel.conf.inc;
-=======
-        uwsgi_pass unix:/run/uwsgi/app/searx/socket;
 
         # Include SSOWAT user panel.
         include conf.d/yunohost_panel.conf.inc;
->>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 }
