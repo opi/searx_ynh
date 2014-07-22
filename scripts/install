@@ -8,16 +8,9 @@ is_public=$3
 # Check domain/path availability
 sudo yunohost app checkurl $domain$path -a searx
 if [[ ! $? -eq 0 ]]; then
-<<<<<<< HEAD
     exit 1
 fi
 
-=======
-	exit 1
-fi
-
-# Save specific settings
->>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 sudo yunohost app setting searx is_public -v $is_public
 
 # Check depends installation
@@ -31,7 +24,7 @@ then
 	sudo mkswap /tmp/myswapfile
 	sudo swapon /tmp/myswapfile
 fi
-
+	
 
 # Init virtualenv
 if [ ! -d /opt/yunohost/searx ];
@@ -50,22 +43,13 @@ then
 fi
 
 #Configuration Searx
-sudo cp ../conf/settings.yml /opt/searx/searx/
-sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
-if [ "$path" != "/" ];
+if [ $path != "/" ];
 then
-<<<<<<< HEAD
 	sudo cp ../conf/settings.yml-noroot /opt/yunohost/searx/searx/settings.yml
 else
 	sudo cp ../conf/settings.yml /opt/yunohost/searx/searx/
 fi
 sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/yunohost/searx/searx/settings.yml
-=======
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" /opt/searx/searx/settings.yml
-else
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" /opt/searx/searx/settings.yml
-fi
->>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 
 # Set permissions to searx directory
 sudo useradd searx -d /opt/yunohost/searx
@@ -77,7 +61,7 @@ sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
-if [ "$path" != "/" ];
+if [ $path != "/" ];
 then
 	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
 else
@@ -92,13 +76,10 @@ fi
 sudo service nginx reload
 sudo service uwsgi restart
 
-if [ "$is_public" = "Yes" ];
+if [ $is_public = "Yes" ];
 then
 	sudo yunohost app setting searx skipped_uris -v "/"
-<<<<<<< HEAD
 else
 	sudo sed -i 's/#include conf/include conf/' /etc/nginx/conf.d/$domain.d/searx.conf
-=======
->>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 fi
 sudo yunohost app ssowatconf
