@@ -1,17 +1,29 @@
+<<<<<<< HEAD
 #!/bin/bash
 
+=======
+>>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 # Retrieve arguments
 domain=$(sudo yunohost app setting searx domain)
 path=$(sudo yunohost app setting searx path)
 is_public=$(sudo yunohost app setting searx is_public)
 
+<<<<<<< HEAD
 
 # Check depends installation
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python -y
+=======
+# Remove trailing "/" for next commands
+path=${path%/}
+
+# Check depends installation
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev -y
+>>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
 then
+<<<<<<< HEAD
 sudo dd if=/dev/zero of=/tmp/myswapfile bs=1M count=128
 sudo chmod 600 /tmp/myswapfile
 sudo mkswap /tmp/myswapfile
@@ -34,10 +46,28 @@ sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
 sudo cp -r ../sources/* /opt/yunohost/searx/
 sudo virtualenv /opt/yunohost/searx
 sudo bash -c "source /opt/yunohost/searx/bin/activate && pip install -r /opt/yunohost/searx/requirements.txt"
+=======
+    sudo dd if=/dev/zero of=/tmp/myswapfile bs=1M count=1024
+    sudo chmod 600 /tmp/myswapfile
+    sudo mkswap /tmp/myswapfile
+    sudo swapon /tmp/myswapfile
+fi
+
+
+# Init virtualenv
+if [ ! -d /opt/searx ];
+then
+    sudo mkdir /opt/searx
+fi
+sudo cp -r ../sources/* /opt/searx
+sudo virtualenv /opt/searx
+sudo bash -c "source /opt/searx/bin/activate && pip install -r /opt/searx/requirements.txt"
+>>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
 
 # Disable swapfile
 if [ -f /tmp/myswapfile ];
 then
+<<<<<<< HEAD
   sudo swapoff /tmp/myswapfile
   sudo rm -f /tmp/myswapfile
 fi
@@ -59,3 +89,55 @@ fi
 ## Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
 sudo service uwsgi restart
+=======
+    sudo swapoff /tmp/myswapfile
+    sudo rm -f /tmp/myswapfile
+fi
+
+# Remove trailing "/" for next commands if installing on a subpath
+if [ "$path" != "/" ];
+then
+        path=${path%/}
+fi
+
+#Configuration Searx
+sudo cp ../conf/settings.yml /opt/searx/searx/
+sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
+if [ "$path" != "/" ];
+then
+    sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" /opt/searx/searx/settings.yml
+else
+    sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" /opt/searx/searx/settings.yml
+fi
+
+# Set permissions to searx directory
+sudo useradd searx -d /opt/searx
+sudo chown searx:searx -R /opt/searx
+
+# Copy uwsgi config
+sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
+sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
+
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
+if [ "$path" != "/" ];
+then
+    sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
+else
+    sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/searx.conf
+fi
+
+# Fix permission
+#sudo find /opt/searx/ -type d -exec chmod 2755 {} \;
+#sudo find /opt/searx/ -type f -exec chmod g+r,o+r {} \;
+
+## Reload Nginx and regenerate SSOwat conf
+sudo service nginx reload
+sudo service uwsgi restart
+
+if [ "$is_public" = "Yes" ];
+then
+    sudo yunohost app setting searx skipped_uris -v "/"
+fi
+sudo yunohost app ssowatconf
+>>>>>>> 90736b2cc32bd424c78355499e1bfb61062af8ca
