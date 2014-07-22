@@ -3,6 +3,9 @@ domain=$(sudo yunohost app setting searx domain)
 path=$(sudo yunohost app setting searx path)
 is_public=$(sudo yunohost app setting searx is_public)
 
+# Remove trailing "/" for next commands
+path=${path%/}
+
 # Check depends installation
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev -y
 
@@ -30,6 +33,12 @@ if [ -f /tmp/myswapfile ];
 then
     sudo swapoff /tmp/myswapfile
     sudo rm -f /tmp/myswapfile
+fi
+
+# Remove trailing "/" for next commands if installing on a subpath
+if [ "$path" != "/" ];
+then
+        path=${path%/}
 fi
 
 #Configuration Searx
