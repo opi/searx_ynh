@@ -18,14 +18,14 @@ sudo yunohost app setting searx is_public -v $is_public
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python -y
 
 # Check Swap
+tmp_swap_file=/tmp/searx_swapfile
 if [ $(sudo swapon -s | wc -l) = 1 ];
 then
-	sudo dd if=/dev/zero of=/tmp/myswapfile bs=1M count=256
-	sudo chmod 600 /tmp/myswapfile
-	sudo mkswap /tmp/myswapfile
-	sudo swapon /tmp/myswapfile
+	sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
+	sudo chmod 600 $tmp_swap_file
+	sudo mkswap $tmp_swap_file
+	sudo swapon $tmp_swap_file
 fi
-
 
 # Init virtualenv
 if [ ! -d /opt/yunohost/searx ];
@@ -37,10 +37,10 @@ sudo virtualenv /opt/yunohost/searx
 sudo bash -c "source /opt/yunohost/searx/bin/activate && pip install -r /opt/yunohost/searx/requirements.txt"
 
 # Disable swapfile
-if [ -f /tmp/myswapfile ];
+if [ -f $tmp_swap_file ];
 then
-	sudo swapoff /tmp/myswapfile
-	sudo rm -f /tmp/myswapfile
+	sudo swapoff $tmp_swap_file
+	sudo rm -f $tmp_swap_file
 fi
 
 #Configuration Searx
