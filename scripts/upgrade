@@ -12,7 +12,7 @@ sudo apt-get install git build-essential libxslt-dev python-dev python-virtualen
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
 then
-    sudo dd if=/dev/zero of=/tmp/myswapfile bs=1M count=1024
+    sudo dd if=/dev/zero of=/tmp/myswapfile bs=1M count=256
     sudo chmod 600 /tmp/myswapfile
     sudo mkswap /tmp/myswapfile
     sudo swapon /tmp/myswapfile
