@@ -27,14 +27,16 @@ then
 	sudo swapon $tmp_swap_file
 fi
 
+final_path=/opt/yunohost/searx
+
 # Init virtualenv
-if [ ! -d /opt/yunohost/searx ];
+if [ ! -d $final_path ];
 then
-	sudo mkdir -p /opt/yunohost/searx
+	sudo mkdir -p $final_path
 fi
-sudo cp -r ../sources/* /opt/yunohost/searx
-sudo virtualenv /opt/yunohost/searx
-sudo bash -c "source /opt/yunohost/searx/bin/activate && pip install -r /opt/yunohost/searx/requirements.txt"
+sudo cp -r ../sources/* $final_path
+sudo virtualenv $final_path
+sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt"
 
 # Disable swapfile
 if [ -f $tmp_swap_file ];
@@ -44,18 +46,18 @@ then
 fi
 
 #Configuration Searx
-sudo cp ../conf/settings.yml /opt/yunohost/searx/searx/
-sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/yunohost/searx/searx/settings.yml
+sudo cp ../conf/settings.yml $final_path/searx/
+sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" $final_path/searx/settings.yml
 if [ "$path" != "/" ];
 then
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" /opt/yunohost/searx/searx/settings.yml
+	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" $final_path/searx/settings.yml
 else
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" /opt/yunohost/searx/searx/settings.yml
+	sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" $final_path/searx/settings.yml
 fi
 
 # Set permissions to searx directory
-sudo useradd searx -d /opt/yunohost/searx
-sudo chown searx:searx -R /opt/yunohost/searx
+sudo useradd searx -d $final_path
+sudo chown searx:searx -R $final_path
 
 # Copy uwsgi config
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
@@ -71,8 +73,8 @@ else
 fi
 
 # Fix permission
-#sudo find /opt/yunohost/searx/ -type d -exec chmod 2755 {} \;
-#sudo find /opt/yunohost/searx/ -type f -exec chmod g+r,o+r {} \;
+#sudo find $final_path/ -type d -exec chmod 2755 {} \;
+#sudo find $final_path/ -type f -exec chmod g+r,o+r {} \;
 
 ## Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
