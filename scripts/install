@@ -44,13 +44,13 @@ then
 fi
 
 #Configuration Searx
-sudo cp ../conf/settings.yml /opt/searx/searx/
-sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/searx/searx/settings.yml
+sudo cp ../conf/settings.yml /opt/yunohost/searx/searx/
+sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" /opt/yunohost/searx/searx/settings.yml
 if [ "$path" != "/" ];
 then
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" /opt/searx/searx/settings.yml
+	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" /opt/yunohost/searx/searx/settings.yml
 else
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" /opt/searx/searx/settings.yml
+	sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" /opt/yunohost/searx/searx/settings.yml
 fi
 
 # Set permissions to searx directory
