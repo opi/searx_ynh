@@ -1,21 +1,30 @@
 server:
     port : 8888
     secret_key : "ultrasecretkey" # change this!
-    debug : True
+    debug : False # Debug mode, only for development
     request_timeout : 2.0 # seconds
-    base_url : False
+    base_url : False # Set custom base_url. Possible values: False or "https://your.custom.host/location/"
+    themes_path : "" # Custom ui themes path
+    default_theme : default # ui theme
+    https_rewrite : True # Force rewrite result urls. See searx/https_rewrite.py
+    useragent_suffix : "" # suffix of searx_useragent, could contain informations like an email address to the administrator
 
 engines:
   - name : wikipedia
-    engine : wikipedia
-    number_of_results : 1
-    paging : False
+    engine : mediawiki
     shortcut : wp
+    base_url : 'https://{language}.wikipedia.org/'
+    number_of_results : 1
 
   - name : bing
     engine : bing
     locale : en-US
     shortcut : bi
+
+  - name : bing images
+    engine : bing_images
+    locale : en-US
+    shortcut : bii
 
   - name : bing news
     engine : bing_news
@@ -29,7 +38,6 @@ engines:
 
   - name : deviantart
     engine : deviantart
-    categories : images
     shortcut : da
     timeout: 3.0
 
@@ -37,15 +45,25 @@ engines:
     engine : duckduckgo_definitions
     shortcut : ddd
 
+  - name : wikidata
+    engine : wikidata
+    shortcut : wd
+
   - name : duckduckgo
     engine : duckduckgo
-    locale : en-us
     shortcut : ddg
 
-  - name : filecrop
-    engine : filecrop
-    categories : files
-    shortcut : fc
+# api-key required: http://www.faroo.com/hp/api/api.html#key
+#  - name : faroo
+#    engine : faroo
+#    shortcut : fa
+#    api_key : 'apikey' # required!
+
+# down - website is under criminal investigation by the UK
+#  - name : filecrop
+#    engine : filecrop
+#    categories : files
+#    shortcut : fc
 
   - name : flickr
     engine : flickr
@@ -53,9 +71,12 @@ engines:
     shortcut : fl
     timeout: 3.0
 
+  - name : general-file
+    engine : generalfile
+    shortcut : gf
+
   - name : github
     engine : github
-    categories : it
     shortcut : gh
 
   - name : google
@@ -70,25 +91,24 @@ engines:
     engine : google_news
     shortcut : gon
 
+  - name : openstreetmap
+    engine : openstreetmap
+    shortcut : osm
+
   - name : piratebay
     engine : piratebay
-    categories : videos, music, files
     shortcut : tpb
 
   - name : soundcloud
     engine : soundcloud
-    categories : music
     shortcut : sc
 
   - name : stackoverflow
     engine : stackoverflow
-    categories : it
     shortcut : st
 
   - name : startpage
     engine : startpage
-    base_url : 'https://startpage.com/'
-    search_url : 'https://startpage.com/do/search'
     shortcut : sp
 
 # +30% page load time
@@ -99,15 +119,14 @@ engines:
 
   - name : twitter
     engine : twitter
-    categories : social media
     shortcut : tw
 
 # maybe in a fun category
 #  - name : uncyclopedia
 #    engine : mediawiki
-#    categories : general
 #    shortcut : unc
-#    url : https://uncyclopedia.wikia.com/
+#    base_url : https://uncyclopedia.wikia.com/
+#    number_of_results : 5
 
 # tmp suspended - too slow, too many errors
 #  - name : urbandictionary
@@ -128,23 +147,23 @@ engines:
 
   - name : youtube
     engine : youtube
-    categories : videos
     shortcut : yt
 
   - name : dailymotion
     engine : dailymotion
-    locale : en_US
-    categories : videos
     shortcut : dm
 
   - name : vimeo
     engine : vimeo
-    categories : videos
-    results_xpath : //div[@id="browse_content"]/ol/li
-    url_xpath : ./a/@href
-    title_xpath : ./a/div[@class="data"]/p[@class="title"]/text()
-    content_xpath : ./a/img/@src
+    locale : en-US
     shortcut : vm
+
+#  - name : yacy
+#    engine : yacy
+#    shortcut : ya
+#    base_url : 'http://localhost:8090'
+#    number_of_results : 5
+#    timeout: 3.0
 
 locales:
     en : English
@@ -154,3 +173,4 @@ locales:
     es : Español
     it : Italiano
     nl : Nederlands
+    ja : 日本語 (Japanese)

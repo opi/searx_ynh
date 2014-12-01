@@ -5,6 +5,11 @@ from setuptools import setup
 from setuptools import find_packages
 
 import os
+import sys
+
+# required to load VERSION_STRING constant
+sys.path.insert(0, './searx')
+from version import VERSION_STRING
 
 
 def read(*rnames):
@@ -15,13 +20,18 @@ long_description = read('README.rst')
 
 setup(
     name='searx',
-    version="0.3.0",
+    version=VERSION_STRING,
     description="A privacy-respecting, hackable metasearch engine",
     long_description=long_description,
     classifiers=[
+        "Development Status :: 4 - Beta",
         "Programming Language :: Python",
+        "Topic :: Internet",
+        "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        'License :: OSI Approved :: GNU Affero General Public License v3'
     ],
-    keywords='meta search engine',
+    keywords='metasearch searchengine search web http',
     author='Adam Tauber',
     author_email='asciimoo@gmail.com',
     url='https://github.com/asciimoo/searx',
@@ -61,11 +71,13 @@ setup(
         'searx': [
             'settings.yml',
             '../README.rst',
-            'static/*/*',
+            'static/*/*/*.*',
+            'static/*/*/*/*.*',
+            'static/*/*/*/*/*.*',
             'translations/*/*/*',
-            'templates/*.xml',
-            'templates/*.html',
-            'templates/result_templates/*.html',
+            'templates/*/*.*',
+            'templates/*/*/*.*',
+            'https_rules/*.xml'
         ],
     },
 

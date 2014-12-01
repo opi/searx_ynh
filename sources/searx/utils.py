@@ -1,21 +1,37 @@
-from HTMLParser import HTMLParser
-#import htmlentitydefs
-import csv
+# import htmlentitydefs
 from codecs import getincrementalencoder
-import cStringIO
-import re
+from HTMLParser import HTMLParser
 from random import choice
 
-ua_versions = ('26.0', '27.0', '28.0')
+from searx.version import VERSION_STRING
+from searx import settings
+
+import cStringIO
+import csv
+import os
+import re
+
+ua_versions = ('29.0',
+               '30.0',
+               '31.0',
+               '32.0',
+               '33.0')
+
 ua_os = ('Windows NT 6.3; WOW64',
          'X11; Linux x86_64',
          'X11; Linux x86')
+
 ua = "Mozilla/5.0 ({os}) Gecko/20100101 Firefox/{version}"
 
 
 def gen_useragent():
     # TODO
     return ua.format(os=choice(ua_os), version=choice(ua_versions))
+
+
+def searx_useragent():
+    return 'searx/{searx_version} {suffix}'.format(searx_version=VERSION_STRING,
+                                          suffix=settings['server'].get('useragent_suffix', ''))
 
 
 def highlight_content(content, query):
@@ -62,8 +78,8 @@ class HTMLTextExtractor(HTMLParser):
         self.result.append(unichr(codepoint))
 
     def handle_entityref(self, name):
-        #codepoint = htmlentitydefs.name2codepoint[name]
-        #self.result.append(unichr(codepoint))
+        # codepoint = htmlentitydefs.name2codepoint[name]
+        # self.result.append(unichr(codepoint))
         self.result.append(name)
 
     def get_text(self):
@@ -110,3 +126,17 @@ class UnicodeWriter:
     def writerows(self, rows):
         for row in rows:
             self.writerow(row)
+
+
+def get_themes(root):
+    """Returns available themes list."""
+
+    static_path = os.path.join(root, 'static')
+    static_names = set(os.listdir(static_path))
+    templates_path = os.path.join(root, 'templates')
+    templates_names = set(os.listdir(templates_path))
+
+    themes = []
+    for name in static_names.intersection(templates_names):
+        themes += [name]
+    return static_path, templates_path, themes

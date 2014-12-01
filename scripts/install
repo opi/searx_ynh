@@ -52,7 +52,7 @@ if [ "$path" != "/" ];
 then
 	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" $final_path/searx/settings.yml
 else
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path@g" $final_path/searx/settings.yml
+	sudo sed -i -e "s@ynhbaseurl@False@g" $final_path/searx/settings.yml
 fi
 
 # Set permissions to searx directory

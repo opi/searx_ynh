@@ -17,6 +17,10 @@ along with searx. If not, see < http://www.gnu.org/licenses/ >.
 (C) 2013- by Adam Tauber, <asciimoo@gmail.com>
 '''
 
+from gevent import monkey
+monkey.patch_all()
+
+
 if __name__ == '__main__':
     from sys import path
     from os.path import realpath, dirname
@@ -35,19 +39,33 @@ from flask import (
 from flask.ext.babel import Babel, gettext, format_date
 from searx import settings, searx_dir
 from searx.engines import (
-    search as do_search, categories, engines, get_engines_stats,
-    engine_shortcuts
+    categories, engines, get_engines_stats, engine_shortcuts
 )
-from searx.utils import UnicodeWriter, highlight_content, html_to_text
+from searx.utils import (
+    UnicodeWriter, highlight_content, html_to_text, get_themes
+)
+from searx.version import VERSION_STRING
+from searx.https_rewrite import https_rules
 from searx.languages import language_codes
 from searx.search import Search
+from searx.query import Query
 from searx.autocomplete import backends as autocomplete_backends
 
+from urlparse import urlparse
+import re
+
+
+static_path, templates_path, themes =\
+    get_themes(settings['themes_path']
+               if settings.get('themes_path')
+               else searx_dir)
+
+default_theme = settings['server'].get('default_theme', 'default')
 
 app = Flask(
     __name__,
-    static_folder=os.path.join(searx_dir, 'static'),
-    template_folder=os.path.join(searx_dir, 'templates')
+    static_folder=static_path,
+    template_folder=templates_path
 )
 
 app.secret_key = settings['server']['secret_key']
@@ -55,8 +73,8 @@ app.secret_key = settings['server']['secret_key']
 babel = Babel(app)
 
 #TODO configurable via settings.yml
-favicons = ['wikipedia', 'youtube', 'vimeo', 'soundcloud',
-            'twitter', 'stackoverflow', 'github']
+favicons = ['wikipedia', 'youtube', 'vimeo', 'dailymotion', 'soundcloud',
+            'twitter', 'stackoverflow', 'github', 'deviantart']
 
 cookie_max_age = 60 * 60 * 24 * 365 * 23  # 23 years
 
@@ -90,7 +108,32 @@ def get_base_url():
     return hostname
 
 
-def render(template_name, **kwargs):
+def get_current_theme_name(override=None):
+    """Returns theme name.
+
+    Checks in this order:
+    1. override
+    2. cookies
+    3. settings"""
+
+    if override and override in themes:
+        return override
+    theme_name = request.args.get('theme',
+                                  request.cookies.get('theme',
+                                                      default_theme))
+    if theme_name not in themes:
+        theme_name = default_theme
+    return theme_name
+
+
+def url_for_theme(endpoint, override_theme=None, **values):
+    if endpoint == 'static' and values.get('filename', None):
+        theme_name = get_current_theme_name(override=override_theme)
+        values['filename'] = "{}/{}".format(theme_name, values['filename'])
+    return url_for(endpoint, **values)
+
+
+def render(template_name, override_theme=None, **kwargs):
     blocked_engines = request.cookies.get('blocked_engines', '').split(',')
 
     autocomplete = request.cookies.get('autocomplete')
@@ -104,28 +147,44 @@ def render(template_name, **kwargs):
 
     nonblocked_categories = set(chain.from_iterable(nonblocked_categories))
 
-    if not 'categories' in kwargs:
+    if 'categories' not in kwargs:
         kwargs['categories'] = ['general']
         kwargs['categories'].extend(x for x in
                                     sorted(categories.keys())
                                     if x != 'general'
                                     and x in nonblocked_categories)
 
-    if not 'selected_categories' in kwargs:
+    if 'selected_categories' not in kwargs:
         kwargs['selected_categories'] = []
+        for arg in request.args:
+            if arg.startswith('category_'):
+                c = arg.split('_', 1)[1]
+                if c in categories:
+                    kwargs['selected_categories'].append(c)
+    if not kwargs['selected_categories']:
         cookie_categories = request.cookies.get('categories', '').split(',')
         for ccateg in cookie_categories:
             if ccateg in categories:
                 kwargs['selected_categories'].append(ccateg)
-        if not kwargs['selected_categories']:
-            kwargs['selected_categories'] = ['general']
+    if not kwargs['selected_categories']:
+        kwargs['selected_categories'] = ['general']
 
-    if not 'autocomplete' in kwargs:
+    if 'autocomplete' not in kwargs:
         kwargs['autocomplete'] = autocomplete
+
+    kwargs['searx_version'] = VERSION_STRING
 
     kwargs['method'] = request.cookies.get('method', 'POST')
 
-    return render_template(template_name, **kwargs)
+    # override url_for function in templates
+    kwargs['url_for'] = url_for_theme
+
+    kwargs['theme'] = get_current_theme_name(override=override_theme)
+
+    kwargs['template_name'] = template_name
+
+    return render_template(
+        '{}/{}'.format(kwargs['theme'], template_name), **kwargs)
 
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -148,16 +207,72 @@ def index():
             'index.html',
         )
 
-    # TODO moar refactor - do_search integration into Search class
-    search.results, search.suggestions = do_search(search.query,
-                                                   request,
-                                                   search.engines,
-                                                   search.pageno,
-                                                   search.lang)
+    search.results, search.suggestions,\
+        search.answers, search.infoboxes = search.search(request)
 
     for result in search.results:
+
         if not search.paging and engines[result['engine']].paging:
             search.paging = True
+
+        # check if HTTPS rewrite is required
+        if settings['server']['https_rewrite']\
+           and result['parsed_url'].scheme == 'http':
+
+            skip_https_rewrite = False
+
+            # check if HTTPS rewrite is possible
+            for target, rules, exclusions in https_rules:
+
+                # check if target regex match with url
+                if target.match(result['url']):
+                    # process exclusions
+                    for exclusion in exclusions:
+                        # check if exclusion match with url
+                        if exclusion.match(result['url']):
+                            skip_https_rewrite = True
+                            break
+
+                    # skip https rewrite if required
+                    if skip_https_rewrite:
+                        break
+
+                    # process rules
+                    for rule in rules:
+                        try:
+                            # TODO, precompile rule
+                            p = re.compile(rule[0])
+
+                            # rewrite url if possible
+                            new_result_url = p.sub(rule[1], result['url'])
+                        except:
+                            break
+
+                        # parse new url
+                        new_parsed_url = urlparse(new_result_url)
+
+                        # continiue if nothing was rewritten
+                        if result['url'] == new_result_url:
+                            continue
+
+                        # get domainname from result
+                        # TODO, does only work correct with TLD's like
+                        #  asdf.com, not for asdf.com.de
+                        # TODO, using publicsuffix instead of this rewrite rule
+                        old_result_domainname = '.'.join(
+                            result['parsed_url'].hostname.split('.')[-2:])
+                        new_result_domainname = '.'.join(
+                            new_parsed_url.hostname.split('.')[-2:])
+
+                        # check if rewritten hostname is the same,
+                        # to protect against wrong or malicious rewrite rules
+                        if old_result_domainname == new_result_domainname:
+                            # set new url
+                            result['url'] = new_result_url
+
+                    # target has matched, do not search over the other rules
+                    break
+
         if search.request_data.get('format', 'html') == 'html':
             if 'content' in result:
                 result['content'] = highlight_content(result['content'],
@@ -170,6 +285,7 @@ def index():
             # removing html content and whitespace duplications
             result['title'] = ' '.join(html_to_text(result['title'])
                                        .strip().split())
+
         if len(result['url']) > 74:
             url_parts = result['url'][:35], result['url'][-35:]
             result['pretty_url'] = u'{0}[...]{1}'.format(*url_parts)
@@ -232,7 +348,10 @@ def index():
         paging=search.paging,
         pageno=search.pageno,
         base_url=get_base_url(),
-        suggestions=search.suggestions
+        suggestions=search.suggestions,
+        answers=search.answers,
+        infoboxes=search.infoboxes,
+        theme=get_current_theme_name()
     )
 
 
@@ -249,24 +368,46 @@ def autocompleter():
     """Return autocompleter results"""
     request_data = {}
 
+    # select request method
     if request.method == 'POST':
         request_data = request.form
     else:
         request_data = request.args
 
-    # TODO fix XSS-vulnerability
-    query = request_data.get('q', '').encode('utf-8')
+    # set blocked engines
+    if request.cookies.get('blocked_engines'):
+        blocked_engines = request.cookies['blocked_engines'].split(',')  # noqa
+    else:
+        blocked_engines = []
 
-    if not query:
+    # parse query
+    query = Query(request_data.get('q', '').encode('utf-8'), blocked_engines)
+    query.parse_query()
+
+    # check if search query is set
+    if not query.getSearchQuery():
         return
 
+    # run autocompleter
     completer = autocomplete_backends.get(request.cookies.get('autocomplete'))
 
+    # check if valid autocompleter is selected
     if not completer:
         return
 
-    results = completer(query)
+    # run autocompletion
+    raw_results = completer(query.getSearchQuery())
 
+    # parse results (write :language and !engine back to result string)
+    results = []
+    for result in raw_results:
+        result_query = query
+        result_query.changeSearchQuery(result)
+
+        # add parsed result
+        results.append(result_query.getFullQuery())
+
+    # return autocompleter results
     if request_data.get('format') == 'x-suggestions':
         return Response(json.dumps([query, results]),
                         mimetype='application/json')
@@ -290,7 +431,7 @@ def preferences():
 
     if request.method == 'GET':
         blocked_engines = request.cookies.get('blocked_engines', '').split(',')
-    else:
+    else:  # on save
         selected_categories = []
         locale = None
         autocomplete = ''
@@ -298,7 +439,7 @@ def preferences():
         for pd_name, pd in request.form.items():
             if pd_name.startswith('category_'):
                 category = pd_name[9:]
-                if not category in categories:
+                if category not in categories:
                     continue
                 selected_categories.append(category)
             elif pd_name == 'locale' and pd in settings['locales']:
@@ -315,6 +456,8 @@ def preferences():
                 engine_name = pd_name.replace('engine_', '', 1)
                 if engine_name in engines:
                     blocked_engines.append(engine_name)
+            elif pd_name == 'theme':
+                theme = pd if pd in themes else default_theme
 
         resp = make_response(redirect(url_for('index')))
 
@@ -352,6 +495,9 @@ def preferences():
 
         resp.set_cookie('method', method, max_age=cookie_max_age)
 
+        resp.set_cookie(
+            'theme', theme, max_age=cookie_max_age)
+
         return resp
     return render('preferences.html',
                   locales=settings['locales'],
@@ -361,13 +507,14 @@ def preferences():
                   categs=categories.items(),
                   blocked_engines=blocked_engines,
                   autocomplete_backends=autocomplete_backends,
-                  shortcuts={y: x for x, y in engine_shortcuts.items()})
+                  shortcuts={y: x for x, y in engine_shortcuts.items()},
+                  themes=themes,
+                  theme=get_current_theme_name())
 
 
 @app.route('/stats', methods=['GET'])
 def stats():
     """Render engine statistics page."""
-    global categories
     stats = get_engines_stats()
     return render(
         'stats.html',
@@ -404,20 +551,23 @@ def opensearch():
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static/img'),
+    return send_from_directory(os.path.join(app.root_path,
+                                            'static',
+                                            get_current_theme_name(),
+                                            'img'),
                                'favicon.png',
                                mimetype='image/vnd.microsoft.icon')
 
 
 def run():
-    from gevent import monkey
-    monkey.patch_all()
-
     app.run(
         debug=settings['server']['debug'],
         use_debugger=settings['server']['debug'],
         port=settings['server']['port']
     )
+
+
+application = app
 
 
 if __name__ == "__main__":

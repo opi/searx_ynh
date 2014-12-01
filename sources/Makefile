@@ -29,9 +29,9 @@ flake8: .installed.cfg
 	@bin/flake8 ./searx/
 
 coverage: .installed.cfg
-	@bin/coverage run --source=./searx/ --branch bin/test
-	@bin/coverage report --show-missing
-	@bin/coverage html --directory ./coverage
+	@bin/coverage run bin/test
+	@bin/coverage report
+	@bin/coverage html
 
 production: bin/buildout production.cfg setup.py
 	bin/buildout -c production.cfg $(options)
@@ -44,13 +44,15 @@ minimal: bin/buildout minimal.cfg setup.py
 	bin/buildout -c minimal.cfg $(options)
 
 styles:
-	@lessc -x searx/static/less/style.less > searx/static/css/style.css
+	@lessc -x searx/static/default/less/style.less > searx/static/default/css/style.css
+	@lessc -x searx/static/oscar/less/bootstrap/bootstrap.less > searx/static/oscar/css/bootstrap.min.css
+	@lessc -x searx/static/oscar/less/oscar/oscar.less > searx/static/oscar/css/oscar.min.css
 
 locales:
 	@pybabel compile -d searx/translations
 
 clean:
 	@rm -rf .installed.cfg .mr.developer.cfg bin parts develop-eggs \
-		searx.egg-info lib include .coverage coverage searx/static/css/*.css
+		searx.egg-info lib include .coverage coverage searx/static/default/css/*.css
 
 .PHONY: all tests robot flake8 coverage production minimal styles locales clean

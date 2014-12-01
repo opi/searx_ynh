@@ -39,26 +39,30 @@ class ViewsTestCase(SearxTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertIn('<div class="title"><h1>searx</h1></div>', result.data)
 
-    @patch('searx.webapp.do_search')
+    @patch('searx.search.Search.search')
     def test_index_html(self, search):
         search.return_value = (
             self.test_results,
+            set(),
+            set(),
             set()
         )
         result = self.app.post('/', data={'q': 'test'})
         self.assertIn(
-            '<h3 class="result_title"><a href="http://first.test.xyz">First <span class="highlight">Test</span></a></h3>',  # noqa
+            '<h3 class="result_title"> <img width="14" height="14" class="favicon" src="static/default/img/icon_youtube.ico" /><a href="http://first.test.xyz">First <span class="highlight">Test</span></a></h3>',  # noqa
             result.data
         )
         self.assertIn(
-            '<p class="content">first <span class="highlight">test</span> content<br /></p>',  # noqa
+            '<p class="content">first <span class="highlight">test</span> content<br class="last"/></p>',  # noqa
             result.data
         )
 
-    @patch('searx.webapp.do_search')
+    @patch('searx.search.Search.search')
     def test_index_json(self, search):
         search.return_value = (
             self.test_results,
+            set(),
+            set(),
             set()
         )
         result = self.app.post('/', data={'q': 'test', 'format': 'json'})
@@ -71,10 +75,12 @@ class ViewsTestCase(SearxTestCase):
         self.assertEqual(
             result_dict['results'][0]['url'], 'http://first.test.xyz')
 
-    @patch('searx.webapp.do_search')
+    @patch('searx.search.Search.search')
     def test_index_csv(self, search):
         search.return_value = (
             self.test_results,
+            set(),
+            set(),
             set()
         )
         result = self.app.post('/', data={'q': 'test', 'format': 'csv'})
@@ -86,10 +92,12 @@ class ViewsTestCase(SearxTestCase):
             result.data
         )
 
-    @patch('searx.webapp.do_search')
+    @patch('searx.search.Search.search')
     def test_index_rss(self, search):
         search.return_value = (
             self.test_results,
+            set(),
+            set(),
             set()
         )
         result = self.app.post('/', data={'q': 'test', 'format': 'rss'})
