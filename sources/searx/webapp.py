@@ -17,10 +17,6 @@ along with searx. If not, see < http://www.gnu.org/licenses/ >.
 (C) 2013- by Adam Tauber, <asciimoo@gmail.com>
 '''
 
-from gevent import monkey
-monkey.patch_all()
-
-
 if __name__ == '__main__':
     from sys import path
     from os.path import realpath, dirname
@@ -298,10 +294,9 @@ def index():
 
         # TODO, check if timezone is calculated right
         if 'publishedDate' in result:
-            if result['publishedDate'].replace(tzinfo=None)\
-               >= datetime.now() - timedelta(days=1):
-                timedifference = datetime.now() - result['publishedDate']\
-                    .replace(tzinfo=None)
+            result['pubdate'] = result['publishedDate'].strftime('%Y-%m-%d %H:%M:%S%z')
+            if result['publishedDate'].replace(tzinfo=None) >= datetime.now() - timedelta(days=1):
+                timedifference = datetime.now() - result['publishedDate'].replace(tzinfo=None)
                 minutes = int((timedifference.seconds / 60) % 60)
                 hours = int(timedifference.seconds / 60 / 60)
                 if hours == 0:
@@ -309,8 +304,6 @@ def index():
                 else:
                     result['publishedDate'] = gettext(u'{hours} hour(s), {minutes} minute(s) ago').format(hours=hours, minutes=minutes)  # noqa
             else:
-                result['pubdate'] = result['publishedDate']\
-                    .strftime('%a, %d %b %Y %H:%M:%S %z')
                 result['publishedDate'] = format_date(result['publishedDate'])
 
     if search.request_data.get('format') == 'json':
@@ -409,7 +402,7 @@ def autocompleter():
 
     # return autocompleter results
     if request_data.get('format') == 'x-suggestions':
-        return Response(json.dumps([query, results]),
+        return Response(json.dumps([query.query, results]),
                         mimetype='application/json')
     else:
         return Response(json.dumps(results),

@@ -27,3 +27,5 @@ generally made searx better:
 - Martin Zimmermann
 - @courgette
 - @kernc
+- @Cqoicebordel
+- @Reventl0v
