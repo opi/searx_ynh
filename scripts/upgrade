@@ -61,7 +61,6 @@ sudo chown searx:searx -R $final_path
 
 # Copy uwsgi config
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
-sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
