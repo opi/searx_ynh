@@ -41,11 +41,8 @@ def load_module(filename):
     module.name = modname
     return module
 
-if 'engines' not in settings or not settings['engines']:
-    print '[E] Error no engines found. Edit your settings.yml'
-    exit(2)
 
-for engine_data in settings['engines']:
+def load_engine(engine_data):
     engine_name = engine_data['engine']
     engine = load_module(engine_name + '.py')
 
@@ -84,10 +81,10 @@ for engine_data in settings['engines']:
         if engine_attr.startswith('_'):
             continue
         if getattr(engine, engine_attr) is None:
-            print '[E] Engine config error: Missing attribute "{0}.{1}"'.format(engine.name, engine_attr)  # noqa
+            print('[E] Engine config error: Missing attribute "{0}.{1}"'\
+                  .format(engine.name, engine_attr))
             sys.exit(1)
 
-    engines[engine.name] = engine
     engine.stats = {
         'result_count': 0,
         'search_count': 0,
@@ -104,7 +101,12 @@ for engine_data in settings['engines']:
 
     if engine.shortcut:
         # TODO check duplications
+        if engine.shortcut in engine_shortcuts:
+            print('[E] Engine config error: ambigious shortcut: {0}'\
+                  .format(engine.shortcut))
+            sys.exit(1)
         engine_shortcuts[engine.shortcut] = engine.name
+    return engine
 
 
 def get_engines_stats():
@@ -194,3 +196,12 @@ def get_engines_stats():
             sorted(errors, key=itemgetter('avg'), reverse=True)
         ),
     ]
+
+
+if 'engines' not in settings or not settings['engines']:
+    print '[E] Error no engines found. Edit your settings.yml'
+    exit(2)
+
+for engine_data in settings['engines']:
+    engine = load_engine(engine_data)
+    engines[engine.name] = engine
