@@ -24,7 +24,8 @@ search_url = url + 'search/{search_term}/{pageno}/'
 
 # specific xpath variables
 magnet_xpath = './/a[@title="Torrent magnet link"]'
-#content_xpath = './/font[@class="detDesc"]//text()'
+torrent_xpath = './/a[@title="Download torrent file"]'
+content_xpath = './/span[@class="font11px lightgrey block"]'
 
 
 # do search-request
@@ -56,9 +57,13 @@ def response(resp):
         link = result.xpath('.//a[@class="cellMainLink"]')[0]
         href = urljoin(url, link.attrib['href'])
         title = ' '.join(link.xpath('.//text()'))
-        content = escape(html.tostring(result.xpath('.//span[@class="font11px lightgrey block"]')[0], method="text"))
+        content = escape(html.tostring(result.xpath(content_xpath)[0],
+                                       method="text"))
         seed = result.xpath('.//td[contains(@class, "green")]/text()')[0]
         leech = result.xpath('.//td[contains(@class, "red")]/text()')[0]
+        filesize = result.xpath('.//td[contains(@class, "nobr")]/text()')[0]
+        filesize_multiplier = result.xpath('.//td[contains(@class, "nobr")]//span/text()')[0]
+        files = result.xpath('.//td[contains(@class, "center")][2]/text()')[0]
 
         # convert seed to int if possible
         if seed.isdigit():
@@ -72,7 +77,32 @@ def response(resp):
         else:
             leech = 0
 
+        # convert filesize to byte if possible
+        try:
+            filesize = float(filesize)
+
+            # convert filesize to byte
+            if filesize_multiplier == 'TB':
+                filesize = int(filesize * 1024 * 1024 * 1024 * 1024)
+            elif filesize_multiplier == 'GB':
+                filesize = int(filesize * 1024 * 1024 * 1024)
+            elif filesize_multiplier == 'MB':
+                filesize = int(filesize * 1024 * 1024)
+            elif filesize_multiplier == 'kb':
+                filesize = int(filesize * 1024)
+        except:
+            filesize = None
+
+        # convert files to int if possible
+        if files.isdigit():
+            files = int(files)
+        else:
+            files = None
+
         magnetlink = result.xpath(magnet_xpath)[0].attrib['href']
+
+        torrentfile = result.xpath(torrent_xpath)[0].attrib['href']
+        torrentfileurl = quote(torrentfile, safe="%/:=&?~#+!$,;'@()*")
 
         # append result
         results.append({'url': href,
@@ -80,7 +110,10 @@ def response(resp):
                         'content': content,
                         'seed': seed,
                         'leech': leech,
+                        'filesize': filesize,
+                        'files': files,
                         'magnetlink': magnetlink,
+                        'torrentfile': torrentfileurl,
                         'template': 'torrent.html'})
 
     # return results sorted by seeder

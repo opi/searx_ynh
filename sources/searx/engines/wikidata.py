@@ -1,6 +1,7 @@
 import json
 from requests import get
 from urllib import urlencode
+from searx.utils import format_date_by_locale
 
 result_count = 1
 wikidata_host = 'https://www.wikidata.org'
@@ -35,18 +36,19 @@ def response(resp):
     language = resp.search_params['language'].split('_')[0]
     if language == 'all':
         language = 'en'
+
     url = url_detail.format(query=urlencode({'ids': '|'.join(wikidata_ids),
                                             'languages': language + '|en'}))
 
     htmlresponse = get(url)
     jsonresponse = json.loads(htmlresponse.content)
     for wikidata_id in wikidata_ids:
-        results = results + getDetail(jsonresponse, wikidata_id, language)
+        results = results + getDetail(jsonresponse, wikidata_id, language, resp.search_params['language'])
 
     return results
 
 
-def getDetail(jsonresponse, wikidata_id, language):
+def getDetail(jsonresponse, wikidata_id, language, locale):
     results = []
     urls = []
     attributes = []
@@ -164,10 +166,12 @@ def getDetail(jsonresponse, wikidata_id, language):
 
     date_of_birth = get_time(claims, 'P569', None)
     if date_of_birth is not None:
+        date_of_birth = format_date_by_locale(date_of_birth[8:], locale)
         attributes.append({'label': 'Date of birth', 'value': date_of_birth})
 
     date_of_death = get_time(claims, 'P570', None)
     if date_of_death is not None:
+        date_of_death = format_date_by_locale(date_of_death[8:], locale)
         attributes.append({'label': 'Date of death', 'value': date_of_death})
 
     if len(attributes) == 0 and len(urls) == 2 and len(description) == 0:
@@ -221,7 +225,7 @@ def get_string(claims, propertyName, defaultValue=None):
     if len(result) == 0:
         return defaultValue
     else:
-        #TODO handle multiple urls
+        # TODO handle multiple urls
         return result[0]
 
 

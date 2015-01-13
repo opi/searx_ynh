@@ -1,5 +1,6 @@
 {% extends "oscar/base.html" %}
 {% block title %}{{ q }} - {% endblock %}
+{% block meta %}<link rel="alternate" type="application/rss+xml" title="Searx search: {{ q }}" href="{{ url_for('index') }}?q={{ q|urlencode }}&amp;format=rss&amp;{% for category in selected_categories %}category_{{ category }}=1&amp;{% endfor %}pageno={{ pageno }}">{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-sm-8" id="main_results">
@@ -17,7 +18,11 @@
             {% for result in results %}
             <div class="result {% if result['template'] %}result-{{ result.template|replace('.html', '') }}{% else %}result-default{% endif %}">
                 {% set index = loop.index %}
-                {% if result.template %}{% include 'oscar/result_templates/'+result['template'] %}{% else %}{% include 'oscar/result_templates/default.html' %}{% endif %}
+                {% if result.template %}
+                    {% include get_result_template('oscar', result['template']) %}
+                {% else %}
+                    {% include 'oscar/result_templates/default.html' %}
+                {% endif %}
             </div>
             {% endfor %}
             
