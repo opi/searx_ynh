@@ -44,6 +44,7 @@ setup(
         'requests',
         'lxml',
         'pyyaml',
+        'pygments',
         'setuptools',
         'python-dateutil',
     ],
@@ -71,6 +72,8 @@ setup(
         'searx': [
             'settings.yml',
             '../README.rst',
+            'static/*.*',
+            'static/*/*.*',
             'static/*/*/*.*',
             'static/*/*/*/*.*',
             'static/*/*/*/*/*.*',

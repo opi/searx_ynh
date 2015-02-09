@@ -25,6 +25,7 @@ paging = True
 # search-url
 base_url = 'https://www.bing.com/'
 search_string = 'images/search?{query}&count=10&first={offset}'
+thumb_url = "http://ts1.mm.bing.net/th?id={ihk}"
 
 
 # do search-request
@@ -32,7 +33,10 @@ def request(query, params):
     offset = (params['pageno'] - 1) * 10 + 1
 
     # required for cookie
-    language = 'en-US'
+    if params['language'] == 'all':
+        language = 'en-US'
+    else:
+        language = params['language'].replace('_', '-')
 
     search_path = search_string.format(
         query=urlencode({'q': query}),
@@ -63,6 +67,8 @@ def response(resp):
         yaml_data = load(p.sub(r'\1\2: \3', link.attrib.get('m')))
 
         title = link.attrib.get('t1')
+        ihk = link.attrib.get('ihk')
+
         #url = 'http://' + link.attrib.get('t3')
         url = yaml_data.get('surl')
         img_src = yaml_data.get('imgurl')
@@ -72,6 +78,7 @@ def response(resp):
                         'url': url,
                         'title': title,
                         'content': '',
+                        'thumbnail_src': thumb_url.format(ihk=ihk),
                         'img_src': img_src})
 
         # TODO stop parsing if 10 images are found

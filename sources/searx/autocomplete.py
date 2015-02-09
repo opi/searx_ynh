@@ -17,13 +17,13 @@ along with searx. If not, see < http://www.gnu.org/licenses/ >.
 
 
 from lxml import etree
-from requests import get
 from json import loads
 from urllib import urlencode
 from searx.languages import language_codes
 from searx.engines import (
     categories, engines, engine_shortcuts
 )
+from searx.poolrequests import get
 
 
 def searx_bang(full_query):
@@ -35,33 +35,34 @@ def searx_bang(full_query):
     results = []
 
     # check if current query stats with !bang
-    if full_query.getSearchQuery()[0] == '!':
+    first_char = full_query.getSearchQuery()[0]
+    if first_char == '!' or first_char == '?':
         if len(full_query.getSearchQuery()) == 1:
             # show some example queries
             # TODO, check if engine is not avaliable
-            results.append("!images")
-            results.append("!wikipedia")
-            results.append("!osm")
+            results.append(first_char + "images")
+            results.append(first_char + "wikipedia")
+            results.append(first_char + "osm")
         else:
             engine_query = full_query.getSearchQuery()[1:]
 
             # check if query starts with categorie name
             for categorie in categories:
                 if categorie.startswith(engine_query):
-                    results.append('!{categorie}'.format(categorie=categorie))
+                    results.append(first_char+'{categorie}'.format(categorie=categorie))
 
             # check if query starts with engine name
             for engine in engines:
                 if engine.startswith(engine_query.replace('_', ' ')):
-                    results.append('!{engine}'.format(engine=engine.replace(' ', '_')))
+                    results.append(first_char+'{engine}'.format(engine=engine.replace(' ', '_')))
 
             # check if query starts with engine shortcut
             for engine_shortcut in engine_shortcuts:
                 if engine_shortcut.startswith(engine_query):
-                    results.append('!{engine_shortcut}'.format(engine_shortcut=engine_shortcut))
+                    results.append(first_char+'{engine_shortcut}'.format(engine_shortcut=engine_shortcut))
 
     # check if current query stats with :bang
-    elif full_query.getSearchQuery()[0] == ':':
+    elif first_char == ':':
         if len(full_query.getSearchQuery()) == 1:
             # show some example queries
             results.append(":en")
