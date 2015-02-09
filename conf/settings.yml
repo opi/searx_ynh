@@ -4,10 +4,12 @@ server:
     debug : False # Debug mode, only for development
     request_timeout : 2.0 # seconds
     base_url : ynhbaseurl # Set custom base_url. Possible values: False or "https://your.custom.host/location/"
-    themes_path : "" # Custom ui themes path
+    themes_path : "" # Custom ui themes path - leave it blank if you didn't change
     default_theme : oscar # ui theme
     https_rewrite : True # Force rewrite result urls. See searx/https_rewrite.py
     useragent_suffix : "" # suffix of searx_useragent, could contain informations like an email address to the administrator
+    image_proxy : False # Proxying image results through searx
+    default_locale : "" # Default interface locale - leave blank to detect from browser information or use codes from the 'locales' config section
 
 engines:
   - name : wikipedia
@@ -31,11 +33,15 @@ engines:
     locale : en-US
     shortcut : bin
 
+  - name : btdigg
+    engine : btdigg
+    shortcut : bt
+
   - name : currency
     engine : currency_convert
     categories : general
     shortcut : cc
-    
+
   - name : deezer
     engine : deezer
     shortcut : dz
@@ -48,7 +54,7 @@ engines:
   - name : ddg definitions
     engine : duckduckgo_definitions
     shortcut : ddd
-    
+
   - name : digg
     engine : digg
     shortcut : dg
@@ -72,10 +78,15 @@ engines:
 #    engine : filecrop
 #    categories : files
 #    shortcut : fc
-    
+
   - name : 500px
-    engine : 500px
+    engine : www500px
     shortcut : px
+
+  - name : 1x
+    engine : www1x
+    shortcut : 1x
+    disabled : True
 
   - name : flickr
     categories : images
@@ -85,11 +96,12 @@ engines:
 #    engine : flickr
 #    api_key: 'apikey' # required!
 # Or you can use the html non-stable engine, activated by default
-    engine : flickr-noapi
+    engine : flickr_noapi
 
   - name : general-file
     engine : generalfile
     shortcut : gf
+    disabled : True
 
   - name : github
     engine : github
@@ -115,7 +127,8 @@ engines:
     content_xpath : //a[@class="subtitle"]
     categories : files
     shortcut : gpa
-    
+    disabled : True
+
   - name : google play movies
     engine        : xpath
     search_url    : https://play.google.com/store/search?q={query}&c=movies
@@ -124,7 +137,8 @@ engines:
     content_xpath : //a[@class="subtitle"]
     categories : videos
     shortcut : gpm
-    
+    disabled : True
+
   - name : google play music
     engine        : xpath
     search_url    : https://play.google.com/store/search?q={query}&c=music
@@ -133,7 +147,12 @@ engines:
     content_xpath : //a[@class="subtitle"]
     categories : music
     shortcut : gps
-    
+    disabled : True
+
+  - name : mixcloud
+    engine : mixcloud
+    shortcut : mc
+
   - name : openstreetmap
     engine : openstreetmap
     shortcut : osm
@@ -142,9 +161,9 @@ engines:
     engine : photon
     shortcut : ph
 
-#  - name : piratebay
-#    engine : piratebay
-#    shortcut : tpb
+  - name : piratebay
+    engine : piratebay
+    shortcut : tpb
 
   - name : kickass
     engine : kickass
@@ -157,14 +176,15 @@ engines:
   - name : stackoverflow
     engine : stackoverflow
     shortcut : st
-    
+
   - name : searchcode doc
     engine : searchcode_doc
     shortcut : scd
-    
+
   - name : searchcode code
     engine : searchcode_code
     shortcut : scc
+    disabled : True
 
   - name : subtitleseeker
     engine : subtitleseeker
@@ -229,7 +249,7 @@ engines:
 #    shortcut : ya
 #    base_url : 'http://localhost:8090'
 #    number_of_results : 5
-#    timeout: 3.0
+#    timeout : 3.0
 
 locales:
     en : English
@@ -241,3 +261,4 @@ locales:
     nl : Nederlands
     ja : 日本語 (Japanese)
     tr : Türkçe
+    ru : Russian
