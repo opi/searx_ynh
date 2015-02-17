@@ -20,7 +20,7 @@ along with searx. If not, see < http://www.gnu.org/licenses/ >.
 if __name__ == '__main__':
     from sys import path
     from os.path import realpath, dirname
-    path.append(realpath(dirname(realpath(__file__))+'/../'))
+    path.append(realpath(dirname(realpath(__file__)) + '/../'))
 
 import json
 import cStringIO
@@ -29,6 +29,7 @@ import hashlib
 
 from datetime import datetime, timedelta
 from urllib import urlencode
+from werkzeug.contrib.fixers import ProxyFix
 from flask import (
     Flask, request, render_template, url_for, Response, make_response,
     redirect, send_from_directory
@@ -80,18 +81,33 @@ app = Flask(
     template_folder=templates_path
 )
 
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
 app.secret_key = settings['server']['secret_key']
 
 babel = Babel(app)
 
+rtl_locales = ['ar', 'arc', 'bcc', 'bqi', 'ckb', 'dv', 'fa', 'glk', 'he',
+               'ku', 'mzn', 'pnb'', ''ps', 'sd', 'ug', 'ur', 'yi']
+
 global_favicons = []
 for indice, theme in enumerate(themes):
     global_favicons.append([])
-    theme_img_path = searx_dir+"/static/themes/"+theme+"/img/icons/"
+    theme_img_path = searx_dir + "/static/themes/" + theme + "/img/icons/"
     for (dirpath, dirnames, filenames) in os.walk(theme_img_path):
         global_favicons[indice].extend(filenames)
 
 cookie_max_age = 60 * 60 * 24 * 365 * 5  # 5 years
+
+_category_names = (gettext('files'),
+                   gettext('general'),
+                   gettext('music'),
+                   gettext('social media'),
+                   gettext('images'),
+                   gettext('videos'),
+                   gettext('it'),
+                   gettext('news'),
+                   gettext('map'))
 
 
 @babel.localeselector
@@ -214,15 +230,14 @@ def image_proxify(url):
     if url.startswith('//'):
         url = 'https:' + url
 
-    url = url.encode('utf-8')
-
     if not settings['server'].get('image_proxy') and not request.cookies.get('image_proxy'):
         return url
 
-    h = hashlib.sha256(url + settings['server']['secret_key'].encode('utf-8')).hexdigest()
+    hash_string = url + settings['server']['secret_key']
+    h = hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
 
     return '{0}?{1}'.format(url_for('image_proxy'),
-                            urlencode(dict(url=url, h=h)))
+                            urlencode(dict(url=url.encode('utf-8'), h=h)))
 
 
 def render(template_name, override_theme=None, **kwargs):
@@ -262,9 +277,14 @@ def render(template_name, override_theme=None, **kwargs):
     if 'autocomplete' not in kwargs:
         kwargs['autocomplete'] = autocomplete
 
+    if get_locale() in rtl_locales and 'rtl' not in kwargs:
+        kwargs['rtl'] = True
+
     kwargs['searx_version'] = VERSION_STRING
 
     kwargs['method'] = request.cookies.get('method', 'POST')
+
+    kwargs['safesearch'] = request.cookies.get('safesearch', '1')
 
     # override url_for function in templates
     kwargs['url_for'] = url_for_theme
@@ -470,6 +490,8 @@ def preferences():
         locale = None
         autocomplete = ''
         method = 'POST'
+        safesearch = '1'
+
         for pd_name, pd in request.form.items():
             if pd_name.startswith('category_'):
                 category = pd_name[9:]
@@ -488,6 +510,8 @@ def preferences():
                 lang = pd
             elif pd_name == 'method':
                 method = pd
+            elif pd_name == 'safesearch':
+                safesearch = pd
             elif pd_name.startswith('engine_'):
                 if pd_name.find('__') > -1:
                     engine_name, category = pd_name.replace('engine_', '', 1).split('__', 1)
@@ -528,6 +552,8 @@ def preferences():
             )
 
         resp.set_cookie('method', method, max_age=cookie_max_age)
+
+        resp.set_cookie('safesearch', safesearch, max_age=cookie_max_age)
 
         resp.set_cookie('image_proxy', image_proxy, max_age=cookie_max_age)
 
@@ -584,7 +610,7 @@ def image_proxy():
     img = ''
     chunk_counter = 0
 
-    for chunk in resp.iter_content(1024*1024):
+    for chunk in resp.iter_content(1024 * 1024):
         chunk_counter += 1
         if chunk_counter > 5:
             return '', 502  # Bad gateway - file is too big (>5M)
@@ -651,6 +677,8 @@ def run():
 
 
 application = app
+
+app.wsgi_app = ProxyFix(application.wsgi_app)
 
 
 if __name__ == "__main__":

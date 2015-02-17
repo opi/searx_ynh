@@ -87,6 +87,12 @@ def make_callback(engine_name, results_queue, callback, params):
 
     # creating a callback wrapper for the search engine results
     def process_callback(response, **kwargs):
+        # check if redirect comparing to the True value,
+        # because resp can be a Mock object, and any attribut name returns something.
+        if response.is_redirect is True:
+            logger.debug('{0} redirect on: {1}'.format(engine_name, response))
+            return
+
         response.search_params = params
 
         timeout_overhead = 0.2  # seconds
@@ -457,6 +463,11 @@ class Search(object):
             request_params['started'] = time()
             request_params['pageno'] = self.pageno
             request_params['language'] = self.lang
+            try:
+                # 0 = None, 1 = Moderate, 2 = Strict
+                request_params['safesearch'] = int(request.cookies.get('safesearch', 1))
+            except ValueError:
+                request_params['safesearch'] = 1
 
             # update request parameters dependent on
             # search-engine (contained in engines folder)

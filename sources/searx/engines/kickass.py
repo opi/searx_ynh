@@ -20,7 +20,7 @@ categories = ['videos', 'music', 'files']
 paging = True
 
 # search-url
-url = 'https://kickass.so/'
+url = 'https://kickass.to/'
 search_url = url + 'search/{search_term}/{pageno}/'
 
 # specific xpath variables
