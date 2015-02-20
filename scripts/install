@@ -15,7 +15,7 @@ fi
 sudo yunohost app setting searx is_public -v $is_public
 
 # Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python -y
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python python-lxml -y
 
 # Check Swap
 tmp_swap_file=/tmp/searx_swapfile
