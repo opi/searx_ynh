@@ -18,9 +18,15 @@ sudo yunohost app setting searx is_public -v $is_public
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev uwsgi uwsgi-plugin-python python-lxml -y
 
 # Check Swap
-tmp_swap_file=/tmp/searx_swapfile
 if [ $(sudo swapon -s | wc -l) = 1 ];
 then
+	mount | grep /tmp | grep tmpfs > /dev/null 2>&1
+	if [ $? = 1 ];
+	then
+		tmp_swap_file=/tmp/searx_swapfile
+	else
+		tmp_swap_file=/var/cache/
+	fi
 	sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
 	sudo chmod 600 $tmp_swap_file
 	sudo mkswap $tmp_swap_file
