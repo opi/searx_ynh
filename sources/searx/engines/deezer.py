@@ -1,12 +1,14 @@
-## Deezer (Music)
-#
-# @website     https://deezer.com
-# @provide-api yes (http://developers.deezer.com/api/)
-#
-# @using-api   yes
-# @results     JSON
-# @stable      yes
-# @parse       url, title, content, embedded
+"""
+ Deezer (Music)
+
+ @website     https://deezer.com
+ @provide-api yes (http://developers.deezer.com/api/)
+
+ @using-api   yes
+ @results     JSON
+ @stable      yes
+ @parse       url, title, content, embedded
+"""
 
 from json import loads
 from urllib import urlencode
@@ -16,11 +18,11 @@ categories = ['music']
 paging = True
 
 # search-url
-url = 'http://api.deezer.com/'
+url = 'https://api.deezer.com/'
 search_url = url + 'search?{query}&index={offset}'
 
 embedded_url = '<iframe scrolling="no" frameborder="0" allowTransparency="true" ' +\
-    'data-src="http://www.deezer.com/plugins/player?type=tracks&id={audioid}" ' +\
+    'data-src="https://www.deezer.com/plugins/player?type=tracks&id={audioid}" ' +\
     'width="540" height="80"></iframe>'
 
 
@@ -45,6 +47,10 @@ def response(resp):
         if result['type'] == 'track':
             title = result['title']
             url = result['link']
+
+            if url.startswith('http://'):
+                url = 'https' + url[4:]
+
             content = result['artist']['name'] +\
                 " &bull; " +\
                 result['album']['title'] +\

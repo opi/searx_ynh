@@ -23,6 +23,7 @@ from operator import itemgetter
 from Queue import Queue
 from time import time
 from urlparse import urlparse, unquote
+from searx import settings
 from searx.engines import (
     categories, engines
 )
@@ -205,6 +206,10 @@ def score_results(results):
         # if there is no duplicate found, append result
         else:
             res['score'] = score
+            # if the result has no scheme, use http as default
+            if res['parsed_url'].scheme == '':
+                res['parsed_url'] = res['parsed_url']._replace(scheme="http")
+
             results.append(res)
 
     results = sorted(results, key=itemgetter('score'), reverse=True)
@@ -237,7 +242,7 @@ def score_results(results):
             for k in categoryPositions:
                 v = categoryPositions[k]['index']
                 if v >= index:
-                    categoryPositions[k]['index'] = v+1
+                    categoryPositions[k]['index'] = v + 1
 
             # update this category
             current['count'] -= 1
@@ -306,7 +311,7 @@ def merge_infoboxes(infoboxes):
 
         if add_infobox:
             results.append(infobox)
-            infoboxes_id[infobox_id] = len(results)-1
+            infoboxes_id[infobox_id] = len(results) - 1
 
     return results
 
@@ -329,8 +334,8 @@ class Search(object):
         self.blocked_engines = get_blocked_engines(engines, request.cookies)
 
         self.results = []
-        self.suggestions = []
-        self.answers = []
+        self.suggestions = set()
+        self.answers = set()
         self.infoboxes = []
         self.request_data = {}
 
@@ -382,9 +387,19 @@ class Search(object):
         # otherwise, using defined categories to
         # calculate which engines should be used
         else:
-            # set used categories
+            # set categories/engines
+            load_default_categories = True
             for pd_name, pd in self.request_data.items():
-                if pd_name.startswith('category_'):
+                if pd_name == 'categories':
+                    self.categories.extend(categ for categ in map(unicode.strip, pd.split(',')) if categ in categories)
+                elif pd_name == 'engines':
+                    pd_engines = [{'category': engines[engine].categories[0],
+                                   'name': engine}
+                                  for engine in map(unicode.strip, pd.split(',')) if engine in engines]
+                    if pd_engines:
+                        self.engines.extend(pd_engines)
+                        load_default_categories = False
+                elif pd_name.startswith('category_'):
                     category = pd_name[9:]
 
                     # if category is not found in list, skip
@@ -397,6 +412,12 @@ class Search(object):
                     elif category in self.categories:
                         # remove category from list if property is set to 'off'
                         self.categories.remove(category)
+
+            if not load_default_categories:
+                if not self.categories:
+                    self.categories = list(set(engine['category']
+                                               for engine in self.engines))
+                return
 
             # if no category is specified for this search,
             # using user-defined default-configuration which
@@ -429,9 +450,6 @@ class Search(object):
         requests = []
         results_queue = Queue()
         results = {}
-        suggestions = set()
-        answers = set()
-        infoboxes = []
 
         # increase number of searches
         number_of_searches += 1
@@ -462,12 +480,17 @@ class Search(object):
             request_params['category'] = selected_engine['category']
             request_params['started'] = time()
             request_params['pageno'] = self.pageno
-            request_params['language'] = self.lang
+
+            if hasattr(engine, 'language') and engine.language:
+                request_params['language'] = engine.language
+            else:
+                request_params['language'] = self.lang
+
             try:
                 # 0 = None, 1 = Moderate, 2 = Strict
-                request_params['safesearch'] = int(request.cookies.get('safesearch', 1))
-            except ValueError:
-                request_params['safesearch'] = 1
+                request_params['safesearch'] = int(request.cookies.get('safesearch'))
+            except Exception:
+                request_params['safesearch'] = settings['search']['safe_search']
 
             # update request parameters dependent on
             # search-engine (contained in engines folder)
@@ -511,7 +534,7 @@ class Search(object):
                              selected_engine['name']))
 
         if not requests:
-            return results, suggestions, answers, infoboxes
+            return self
         # send all search-request
         threaded_requests(requests)
 
@@ -519,19 +542,19 @@ class Search(object):
             engine_name, engine_results = results_queue.get_nowait()
 
             # TODO type checks
-            [suggestions.add(x['suggestion'])
+            [self.suggestions.add(x['suggestion'])
              for x in list(engine_results)
              if 'suggestion' in x
              and engine_results.remove(x) is None]
 
-            [answers.add(x['answer'])
+            [self.answers.add(x['answer'])
              for x in list(engine_results)
              if 'answer' in x
              and engine_results.remove(x) is None]
 
-            infoboxes.extend(x for x in list(engine_results)
-                             if 'infobox' in x
-                             and engine_results.remove(x) is None)
+            self.infoboxes.extend(x for x in list(engine_results)
+                                  if 'infobox' in x
+                                  and engine_results.remove(x) is None)
 
             results[engine_name] = engine_results
 
@@ -541,16 +564,16 @@ class Search(object):
             engines[engine_name].stats['result_count'] += len(engine_results)
 
         # score results and remove duplications
-        results = score_results(results)
+        self.results = score_results(results)
 
         # merge infoboxes according to their ids
-        infoboxes = merge_infoboxes(infoboxes)
+        self.infoboxes = merge_infoboxes(self.infoboxes)
 
         # update engine stats, using calculated score
-        for result in results:
+        for result in self.results:
             for res_engine in result['engines']:
                 engines[result['engine']]\
                     .stats['score_count'] += result['score']
 
         # return results, suggestions, answers and infoboxes
-        return results, suggestions, answers, infoboxes
+        return self

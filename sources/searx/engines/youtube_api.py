@@ -1,7 +1,7 @@
-## Youtube (Videos)
+# Youtube (Videos)
 #
 # @website     https://www.youtube.com/
-# @provide-api yes (http://gdata-samples-youtube-search-py.appspot.com/)
+# @provide-api yes (https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.search.list)
 #
 # @using-api   yes
 # @results     JSON
@@ -14,28 +14,29 @@ from dateutil import parser
 
 # engine dependent config
 categories = ['videos', 'music']
-paging = True
+paging = False
 language_support = True
+api_key = None
 
 # search-url
-base_url = 'https://gdata.youtube.com/feeds/api/videos'
-search_url = base_url + '?alt=json&{query}&start-index={index}&max-results=5'
+base_url = 'https://www.googleapis.com/youtube/v3/search'
+search_url = base_url + '?part=snippet&{query}&maxResults=20&key={api_key}'
 
 embedded_url = '<iframe width="540" height="304" ' +\
     'data-src="//www.youtube-nocookie.com/embed/{videoid}" ' +\
     'frameborder="0" allowfullscreen></iframe>'
 
+base_youtube_url = 'https://www.youtube.com/watch?v='
+
 
 # do search-request
 def request(query, params):
-    index = (params['pageno'] - 1) * 5 + 1
-
     params['url'] = search_url.format(query=urlencode({'q': query}),
-                                      index=index)
+                                      api_key=api_key)
 
     # add language tag if specified
     if params['language'] != 'all':
-        params['url'] += '&lr=' + params['language'].split('_')[0]
+        params['url'] += '&relevanceLanguage=' + params['language'].split('_')[0]
 
     return params
 
@@ -47,36 +48,25 @@ def response(resp):
     search_results = loads(resp.text)
 
     # return empty array if there are no results
-    if not 'feed' in search_results:
+    if 'items' not in search_results:
         return []
 
-    feed = search_results['feed']
-
     # parse results
-    for result in feed['entry']:
-        url = [x['href'] for x in result['link'] if x['type'] == 'text/html']
+    for result in search_results['items']:
+        videoid = result['id']['videoId']
 
-        if not url:
-            continue
-
-        # remove tracking
-        url = url[0].replace('feature=youtube_gdata', '')
-        if url.endswith('&'):
-            url = url[:-1]
-
-        videoid = url[32:]
-
-        title = result['title']['$t']
+        title = result['snippet']['title']
         content = ''
         thumbnail = ''
 
-        pubdate = result['published']['$t']
+        pubdate = result['snippet']['publishedAt']
         publishedDate = parser.parse(pubdate)
 
-        if 'media$thumbnail' in result['media$group']:
-            thumbnail = result['media$group']['media$thumbnail'][0]['url']
+        thumbnail = result['snippet']['thumbnails']['high']['url']
 
-        content = result['content']['$t']
+        content = result['snippet']['description']
+
+        url = base_youtube_url + videoid
 
         embedded = embedded_url.format(videoid=videoid)
 

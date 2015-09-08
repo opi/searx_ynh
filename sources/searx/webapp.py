@@ -26,9 +26,23 @@ import json
 import cStringIO
 import os
 import hashlib
+import requests
+
+from searx import logger
+logger = logger.getChild('webapp')
+
+try:
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import HtmlFormatter
+except:
+    logger.critical("cannot import dependency: pygments")
+    from sys import exit
+    exit(1)
 
 from datetime import datetime, timedelta
 from urllib import urlencode
+from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 from flask import (
     Flask, request, render_template, url_for, Response, make_response,
@@ -36,7 +50,6 @@ from flask import (
 )
 from flask.ext.babel import Babel, gettext, format_date
 from searx import settings, searx_dir
-from searx.poolrequests import get as http_get
 from searx.engines import (
     categories, engines, get_engines_stats, engine_shortcuts
 )
@@ -47,29 +60,28 @@ from searx.utils import (
 )
 from searx.version import VERSION_STRING
 from searx.languages import language_codes
-from searx.https_rewrite import https_url_rewrite
 from searx.search import Search
 from searx.query import Query
 from searx.autocomplete import searx_bang, backends as autocomplete_backends
-from searx import logger
+from searx.plugins import plugins
+
+# check if the pyopenssl, ndg-httpsclient, pyasn1 packages are installed.
+# They are needed for SSL connection without trouble, see #298
 try:
-    from pygments import highlight
-    from pygments.lexers import get_lexer_by_name
-    from pygments.formatters import HtmlFormatter
-except:
-    logger.critical("cannot import dependency: pygments")
-    from sys import exit
-    exit(1)
+    import OpenSSL.SSL  # NOQA
+    import ndg.httpsclient  # NOQA
+    import pyasn1  # NOQA
+except ImportError:
+    logger.critical("The pyopenssl, ndg-httpsclient, pyasn1 packages have to be installed.\n"
+                    "Some HTTPS connections will failed")
 
-
-logger = logger.getChild('webapp')
 
 static_path, templates_path, themes =\
-    get_themes(settings['themes_path']
-               if settings.get('themes_path')
+    get_themes(settings['ui']['themes_path']
+               if settings['ui']['themes_path']
                else searx_dir)
 
-default_theme = settings['server'].get('default_theme', 'default')
+default_theme = settings['ui']['default_theme']
 
 static_files = get_static_files(searx_dir)
 
@@ -109,13 +121,15 @@ _category_names = (gettext('files'),
                    gettext('news'),
                    gettext('map'))
 
+outgoing_proxies = settings['outgoing'].get('proxies', None)
+
 
 @babel.localeselector
 def get_locale():
     locale = request.accept_languages.best_match(settings['locales'].keys())
 
-    if settings['server'].get('default_locale'):
-        locale = settings['server']['default_locale']
+    if settings['ui'].get('default_locale'):
+        locale = settings['ui']['default_locale']
 
     if request.cookies.get('locale', '') in settings['locales']:
         locale = request.cookies.get('locale', '')
@@ -178,6 +192,12 @@ def code_highlighter(codelines, language=None):
     html_code = html_code + highlight(tmp_code, lexer, formatter)
 
     return html_code
+
+
+# Extract domain from url
+@app.template_filter('extract_domain')
+def extract_domain(url):
+    return urlparse(url)[1]
 
 
 def get_base_url():
@@ -243,7 +263,7 @@ def image_proxify(url):
 def render(template_name, override_theme=None, **kwargs):
     blocked_engines = get_blocked_engines(engines, request.cookies)
 
-    autocomplete = request.cookies.get('autocomplete')
+    autocomplete = request.cookies.get('autocomplete', settings['search']['autocomplete'])
 
     if autocomplete not in autocomplete_backends:
         autocomplete = None
@@ -259,6 +279,12 @@ def render(template_name, override_theme=None, **kwargs):
                                     if x != 'general'
                                     and x in nonblocked_categories)
 
+    if 'all_categories' not in kwargs:
+        kwargs['all_categories'] = ['general']
+        kwargs['all_categories'].extend(x for x in
+                                        sorted(categories.keys())
+                                        if x != 'general')
+
     if 'selected_categories' not in kwargs:
         kwargs['selected_categories'] = []
         for arg in request.args:
@@ -266,11 +292,13 @@ def render(template_name, override_theme=None, **kwargs):
                 c = arg.split('_', 1)[1]
                 if c in categories:
                     kwargs['selected_categories'].append(c)
+
     if not kwargs['selected_categories']:
         cookie_categories = request.cookies.get('categories', '').split(',')
         for ccateg in cookie_categories:
             if ccateg in categories:
                 kwargs['selected_categories'].append(ccateg)
+
     if not kwargs['selected_categories']:
         kwargs['selected_categories'] = ['general']
 
@@ -284,7 +312,7 @@ def render(template_name, override_theme=None, **kwargs):
 
     kwargs['method'] = request.cookies.get('method', 'POST')
 
-    kwargs['safesearch'] = request.cookies.get('safesearch', '1')
+    kwargs['safesearch'] = request.cookies.get('safesearch', str(settings['search']['safe_search']))
 
     # override url_for function in templates
     kwargs['url_for'] = url_for_theme
@@ -299,8 +327,35 @@ def render(template_name, override_theme=None, **kwargs):
 
     kwargs['cookies'] = request.cookies
 
+    kwargs['scripts'] = set()
+    for plugin in request.user_plugins:
+        for script in plugin.js_dependencies:
+            kwargs['scripts'].add(script)
+
+    kwargs['styles'] = set()
+    for plugin in request.user_plugins:
+        for css in plugin.css_dependencies:
+            kwargs['styles'].add(css)
+
     return render_template(
         '{}/{}'.format(kwargs['theme'], template_name), **kwargs)
+
+
+@app.before_request
+def pre_request():
+    # merge GET, POST vars
+    request.form = dict(request.form.items())
+    for k, v in request.args.items():
+        if k not in request.form:
+            request.form[k] = v
+
+    request.user_plugins = []
+    allowed_plugins = request.cookies.get('allowed_plugins', '').split(',')
+    disabled_plugins = request.cookies.get('disabled_plugins', '').split(',')
+    for plugin in plugins:
+        if ((plugin.default_on and plugin.id not in disabled_plugins)
+                or plugin.id in allowed_plugins):
+            request.user_plugins.append(plugin)
 
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -323,19 +378,16 @@ def index():
             'index.html',
         )
 
-    search.results, search.suggestions,\
-        search.answers, search.infoboxes = search.search(request)
+    if plugins.call('pre_search', request, locals()):
+        search.search(request)
+
+    plugins.call('post_search', request, locals())
 
     for result in search.results:
 
+        plugins.call('on_result', request, locals())
         if not search.paging and engines[result['engine']].paging:
             search.paging = True
-
-        # check if HTTPS rewrite is required
-        if settings['server']['https_rewrite']\
-           and result['parsed_url'].scheme == 'http':
-
-            result = https_url_rewrite(result)
 
         if search.request_data.get('format', 'html') == 'html':
             if 'content' in result:
@@ -344,11 +396,10 @@ def index():
             result['title'] = highlight_content(result['title'],
                                                 search.query.encode('utf-8'))
         else:
-            if 'content' in result:
+            if result.get('content'):
                 result['content'] = html_to_text(result['content']).strip()
             # removing html content and whitespace duplications
-            result['title'] = ' '.join(html_to_text(result['title'])
-                                       .strip().split())
+            result['title'] = ' '.join(html_to_text(result['title']).strip().split())
 
         result['pretty_url'] = prettify_url(result['url'])
 
@@ -440,7 +491,7 @@ def autocompleter():
         return '', 400
 
     # run autocompleter
-    completer = autocomplete_backends.get(request.cookies.get('autocomplete'))
+    completer = autocomplete_backends.get(request.cookies.get('autocomplete', settings['search']['autocomplete']))
 
     # parse searx specific autocompleter results like !bang
     raw_results = searx_bang(query)
@@ -487,11 +538,11 @@ def preferences():
         blocked_engines = get_blocked_engines(engines, request.cookies)
     else:  # on save
         selected_categories = []
+        post_disabled_plugins = []
         locale = None
         autocomplete = ''
         method = 'POST'
-        safesearch = '1'
-
+        safesearch = settings['search']['safe_search']
         for pd_name, pd in request.form.items():
             if pd_name.startswith('category_'):
                 category = pd_name[9:]
@@ -514,13 +565,33 @@ def preferences():
                 safesearch = pd
             elif pd_name.startswith('engine_'):
                 if pd_name.find('__') > -1:
-                    engine_name, category = pd_name.replace('engine_', '', 1).split('__', 1)
+                    # TODO fix underscore vs space
+                    engine_name, category = [x.replace('_', ' ') for x in
+                                             pd_name.replace('engine_', '', 1).split('__', 1)]
                     if engine_name in engines and category in engines[engine_name].categories:
                         blocked_engines.append((engine_name, category))
             elif pd_name == 'theme':
                 theme = pd if pd in themes else default_theme
+            elif pd_name.startswith('plugin_'):
+                plugin_id = pd_name.replace('plugin_', '', 1)
+                if not any(plugin.id == plugin_id for plugin in plugins):
+                    continue
+                post_disabled_plugins.append(plugin_id)
             else:
                 resp.set_cookie(pd_name, pd, max_age=cookie_max_age)
+
+        disabled_plugins = []
+        allowed_plugins = []
+        for plugin in plugins:
+            if plugin.default_on:
+                if plugin.id in post_disabled_plugins:
+                    disabled_plugins.append(plugin.id)
+            elif plugin.id not in post_disabled_plugins:
+                allowed_plugins.append(plugin.id)
+
+        resp.set_cookie('disabled_plugins', ','.join(disabled_plugins), max_age=cookie_max_age)
+
+        resp.set_cookie('allowed_plugins', ','.join(allowed_plugins), max_age=cookie_max_age)
 
         resp.set_cookie(
             'blocked_engines', ','.join('__'.join(e) for e in blocked_engines),
@@ -553,24 +624,45 @@ def preferences():
 
         resp.set_cookie('method', method, max_age=cookie_max_age)
 
-        resp.set_cookie('safesearch', safesearch, max_age=cookie_max_age)
+        resp.set_cookie('safesearch', str(safesearch), max_age=cookie_max_age)
 
         resp.set_cookie('image_proxy', image_proxy, max_age=cookie_max_age)
 
         resp.set_cookie('theme', theme, max_age=cookie_max_age)
 
         return resp
+
+    # stats for preferences page
+    stats = {}
+
+    for c in categories:
+        for e in categories[c]:
+            stats[e.name] = {'time': None,
+                             'warn_timeout': False,
+                             'warn_time': False}
+            if e.timeout > settings['outgoing']['request_timeout']:
+                stats[e.name]['warn_timeout'] = True
+
+    for engine_stat in get_engines_stats()[0][1]:
+        stats[engine_stat.get('name')]['time'] = round(engine_stat.get('avg'), 3)
+        if engine_stat.get('avg') > settings['outgoing']['request_timeout']:
+            stats[engine_stat.get('name')]['warn_time'] = True
+    # end of stats
+
     return render('preferences.html',
                   locales=settings['locales'],
                   current_locale=get_locale(),
                   current_language=lang or 'all',
                   image_proxy=image_proxy,
                   language_codes=language_codes,
-                  categs=categories.items(),
+                  engines_by_category=categories,
+                  stats=stats,
                   blocked_engines=blocked_engines,
                   autocomplete_backends=autocomplete_backends,
                   shortcuts={y: x for x, y in engine_shortcuts.items()},
                   themes=themes,
+                  plugins=plugins,
+                  allowed_plugins=[plugin.id for plugin in request.user_plugins],
                   theme=get_current_theme_name())
 
 
@@ -589,10 +681,11 @@ def image_proxy():
     headers = dict_subset(request.headers, {'If-Modified-Since', 'If-None-Match'})
     headers['User-Agent'] = gen_useragent()
 
-    resp = http_get(url,
-                    stream=True,
-                    timeout=settings['server'].get('request_timeout', 2),
-                    headers=headers)
+    resp = requests.get(url,
+                        stream=True,
+                        timeout=settings['outgoing']['request_timeout'],
+                        headers=headers,
+                        proxies=outgoing_proxies)
 
     if resp.status_code == 304:
         return '', resp.status_code
@@ -604,7 +697,7 @@ def image_proxy():
         return '', 400
 
     if not resp.headers.get('content-type', '').startswith('image/'):
-        logger.debug('image-proxy: wrong content-type: {0}'.format(resp.get('content-type')))
+        logger.debug('image-proxy: wrong content-type: {0}'.format(resp.headers.get('content-type')))
         return '', 400
 
     img = ''
@@ -644,6 +737,10 @@ Disallow: /preferences
 @app.route('/opensearch.xml', methods=['GET'])
 def opensearch():
     method = 'post'
+
+    if request.cookies.get('method', 'POST') == 'GET':
+        method = 'get'
+
     # chrome/chromium only supports HTTP GET....
     if request.headers.get('User-Agent', '').lower().find('webkit') >= 0:
         method = 'get'
@@ -668,18 +765,62 @@ def favicon():
                                mimetype='image/vnd.microsoft.icon')
 
 
+@app.route('/clear_cookies')
+def clear_cookies():
+    resp = make_response(redirect(url_for('index')))
+    for cookie_name in request.cookies:
+        resp.delete_cookie(cookie_name)
+    return resp
+
+
 def run():
     app.run(
-        debug=settings['server']['debug'],
-        use_debugger=settings['server']['debug'],
-        port=settings['server']['port']
+        debug=settings['general']['debug'],
+        use_debugger=settings['general']['debug'],
+        port=settings['server']['port'],
+        host=settings['server']['bind_address']
     )
 
 
+class ReverseProxyPathFix(object):
+    '''Wrap the application in this middleware and configure the
+    front-end server to add these headers, to let you quietly bind
+    this to a URL other than / and to an HTTP scheme that is
+    different than what is used locally.
+
+    http://flask.pocoo.org/snippets/35/
+
+    In nginx:
+    location /myprefix {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Scheme $scheme;
+        proxy_set_header X-Script-Name /myprefix;
+        }
+
+    :param app: the WSGI application
+    '''
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
+        if script_name:
+            environ['SCRIPT_NAME'] = script_name
+            path_info = environ['PATH_INFO']
+            if path_info.startswith(script_name):
+                environ['PATH_INFO'] = path_info[len(script_name):]
+
+        scheme = environ.get('HTTP_X_SCHEME', '')
+        if scheme:
+            environ['wsgi.url_scheme'] = scheme
+        return self.app(environ, start_response)
+
+
 application = app
-
-app.wsgi_app = ProxyFix(application.wsgi_app)
-
+# patch app to handle non root url-s behind proxy & wsgi
+app.wsgi_app = ReverseProxyPathFix(ProxyFix(application.wsgi_app))
 
 if __name__ == "__main__":
     run()

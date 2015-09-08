@@ -29,6 +29,13 @@ class TestYahooNewsEngine(SearxTestCase):
         self.assertIn('en', params['cookies']['sB'])
         self.assertIn('en', params['url'])
 
+    def test_sanitize_url(self):
+        url = "test.url"
+        self.assertEqual(url, yahoo_news.sanitize_url(url))
+
+        url = "www.yahoo.com/;_ylt=test"
+        self.assertEqual("www.yahoo.com/", yahoo_news.sanitize_url(url))
+
     def test_response(self):
         self.assertRaises(AttributeError, yahoo_news.response, None)
         self.assertRaises(AttributeError, yahoo_news.response, [])
@@ -39,20 +46,35 @@ class TestYahooNewsEngine(SearxTestCase):
         self.assertEqual(yahoo_news.response(response), [])
 
         html = """
-        <div class="res">
-            <div>
-                <h3>
-                    <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
-                        This is
-                        the <b>title</b>...
-                    </a>
-                </h3>
-            </div>
-            <span class="url">Business via Yahoo! Finance</span> &nbsp; <span class="timestamp">Feb 03 09:45am</span>
-            <div class="abstr">
-                This is the content
-            </div>
-        </div>
+        <ol class=" reg searchCenterMiddle">
+            <li class="first">
+                <div class="compTitle">
+                    <h3>
+                        <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
+                           This is
+                           the <b>title</b>...
+                        </a>
+                    </h3>
+                </div>
+                <div>
+                    <span class="cite">Business via Yahoo!</span>
+                    <span class="tri fc-2nd ml-10">May 01 10:00 AM</span>
+                </div>
+                <div class="compText">
+                   This is the content
+               </div>
+            </li>
+            <li class="first">
+                <div class="compTitle">
+                    <h3>
+                        <a class="yschttl spt" target="_blank">
+                        </a>
+                    </h3>
+                </div>
+                <div class="compText">
+               </div>
+            </li>
+        </ol>
         """
         response = mock.Mock(text=html)
         results = yahoo_news.response(response)
@@ -63,48 +85,59 @@ class TestYahooNewsEngine(SearxTestCase):
         self.assertEqual(results[0]['content'], 'This is the content')
 
         html = """
-        <div class="res">
-            <div>
-                <h3>
-                    <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
-                        This is
-                        the <b>title</b>...
-                    </a>
-                </h3>
-            </div>
-            <span class="url">Business via Yahoo!</span> &nbsp; <span class="timestamp">2 hours, 22 minutes ago</span>
-            <div class="abstr">
-                This is the content
-            </div>
-        </div>
-        <div class="res">
-            <div>
-                <h3>
-                    <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
-                        This is
-                        the <b>title</b>...
-                    </a>
-                </h3>
-            </div>
-            <span class="url">Business via Yahoo!</span> &nbsp; <span class="timestamp">22 minutes ago</span>
-            <div class="abstr">
-                This is the content
-            </div>
-        </div>
-        <div class="res">
-            <div>
-                <h3>
-                    <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
-                        This is
-                        the <b>title</b>...
-                    </a>
-                </h3>
-            </div>
-            <span class="url">Business via Yahoo!</span> &nbsp; <span class="timestamp">Feb 03 09:45am 1900</span>
-            <div class="abstr">
-                This is the content
-            </div>
-        </div>
+        <ol class=" reg searchCenterMiddle">
+            <li class="first">
+                <div class="compTitle">
+                    <h3>
+                        <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
+                            This is
+                            the <b>title</b>...
+                        </a>
+                    </h3>
+                </div>
+                <div>
+                    <span class="cite">Business via Yahoo!</span>
+                    <span class="tri fc-2nd ml-10">2 hours, 22 minutes ago</span>
+                </div>
+                <div class="compText">
+                    This is the content
+                </div>
+            </li>
+            <li>
+                <div class="compTitle">
+                    <h3>
+                        <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
+                            This is
+                            the <b>title</b>...
+                        </a>
+                    </h3>
+                </div>
+                <div>
+                    <span class="cite">Business via Yahoo!</span>
+                    <span class="tri fc-2nd ml-10">22 minutes ago</span>
+                </div>
+                <div class="compText">
+                    This is the content
+                </div>
+            </li>
+            <li>
+                <div class="compTitle">
+                    <h3>
+                        <a class="yschttl spt" href="http://this.is.the.url" target="_blank">
+                            This is
+                            the <b>title</b>...
+                        </a>
+                    </h3>
+                </div>
+                <div>
+                    <span class="cite">Business via Yahoo!</span>
+                    <span class="tri fc-2nd ml-10">Feb 03 09:45AM 1900</span>
+                </div>
+                <div class="compText">
+                    This is the content
+                </div>
+            </li>
+        </ol>
         """
         response = mock.Mock(text=html)
         results = yahoo_news.response(response)
@@ -114,30 +147,3 @@ class TestYahooNewsEngine(SearxTestCase):
         self.assertEqual(results[0]['url'], 'http://this.is.the.url/')
         self.assertEqual(results[0]['content'], 'This is the content')
         self.assertEqual(results[2]['publishedDate'].year, datetime.now().year)
-
-        html = """
-        <li class="b_algo" u="0|5109|4755453613245655|UAGjXgIrPH5yh-o5oNHRx_3Zta87f_QO">
-            <div Class="sa_mc">
-                <div class="sb_tlst">
-                    <h2>
-                        <a href="http://this.should.be.the.link/" h="ID=SERP,5124.1">
-                        <strong>This</strong> should be the title</a>
-                    </h2>
-                </div>
-                <div class="sb_meta">
-                <cite>
-                <strong>this</strong>.meta.com</cite>
-                    <span class="c_tlbxTrg">
-                        <span class="c_tlbxH" H="BASE:CACHEDPAGEDEFAULT" K="SERP,5125.1">
-                        </span>
-                    </span>
-                </div>
-                <p>
-                <strong>This</strong> should be the content.</p>
-            </div>
-        </li>
-        """
-        response = mock.Mock(text=html)
-        results = yahoo_news.response(response)
-        self.assertEqual(type(results), list)
-        self.assertEqual(len(results), 0)

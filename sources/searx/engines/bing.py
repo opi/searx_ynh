@@ -1,15 +1,17 @@
-## Bing (Web)
-#
-# @website     https://www.bing.com
-# @provide-api yes (http://datamarket.azure.com/dataset/bing/search),
-#              max. 5000 query/month
-#
-# @using-api   no (because of query limit)
-# @results     HTML (using search portal)
-# @stable      no (HTML can change)
-# @parse       url, title, content
-#
-# @todo        publishedDate
+"""
+ Bing (Web)
+
+ @website     https://www.bing.com
+ @provide-api yes (http://datamarket.azure.com/dataset/bing/search),
+              max. 5000 query/month
+
+ @using-api   no (because of query limit)
+ @results     HTML (using search portal)
+ @stable      no (HTML can change)
+ @parse       url, title, content
+
+ @todo        publishedDate
+"""
 
 from urllib import urlencode
 from cgi import escape
@@ -50,7 +52,7 @@ def request(query, params):
 def response(resp):
     results = []
 
-    dom = html.fromstring(resp.content)
+    dom = html.fromstring(resp.text)
 
     # parse results
     for result in dom.xpath('//div[@class="sa_cc"]'):
