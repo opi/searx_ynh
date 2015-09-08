@@ -33,7 +33,7 @@ sudo cp -r ../sources/* $final_path
 sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt --upgrade"
 
 # Disable swapfile
-if [[ -z "$tmp_swap_file" ]];
+if [[ -v "$tmp_swap_file" ]];
 then
     sudo swapoff $tmp_swap_file
     sudo rm -f $tmp_swap_file
