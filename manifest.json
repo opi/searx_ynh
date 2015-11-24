@@ -11,6 +11,10 @@
 	"email": "beudbeud@beudibox.fr"
     },
     "multi_instance": "true",
+    "services": [
+        "nginx",
+        "uwsgi"
+    ],
     "arguments": {
         "install" : [
             {
