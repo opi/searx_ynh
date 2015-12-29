@@ -3,13 +3,13 @@ general:
 
 search:
     safe_search : 0 # Filter results. 0: None, 1: Moderate, 2: Strict
-    autocomplete : "duckduckgo" # Existing autocomplete backends: "dbpedia", "duckduckgo", "google", "startpage", "wikipedia" - leave blank to turn it off by default
+    autocomplete : "" # Existing autocomplete backends: "dbpedia", "duckduckgo", "google", "startpage", "wikipedia" - leave blank to turn it off by default
 
 server:
     port : 8888
     bind_address : "127.0.0.1" # address to listen on
     secret_key : "ultrasecretkey" # change this!
-    base_url : ynhbaseurl # Set custom base_url. Possible values: False or "https://your.custom.host/location/"
+    base_url : False # Set custom base_url. Possible values: False or "https://your.custom.host/location/"
     image_proxy : False # Proxying image results through searx
 
 ui:
@@ -274,6 +274,11 @@ engines:
     engine : yahoo
     shortcut : yh
 
+  - name : yandex
+    engine : yandex
+    shortcut : yn
+    disabled : True
+
   - name : yahoo news
     engine : yahoo_news
     shortcut : yhn
@@ -311,7 +316,7 @@ engines:
 locales:
     en : English
     de : Deutsch
-    he : Hebrew
+    he : עברית
     hu : Magyar
     fr : Français
     es : Español

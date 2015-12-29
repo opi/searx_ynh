@@ -1,8 +1,8 @@
 """
  Gigablast (Web)
 
- @website     http://gigablast.com
- @provide-api yes (http://gigablast.com/api.html)
+ @website     https://gigablast.com
+ @provide-api yes (https://gigablast.com/api.html)
 
  @using-api   yes
  @results     XML
@@ -13,6 +13,8 @@
 from urllib import urlencode
 from cgi import escape
 from lxml import etree
+from random import randint
+from time import time
 
 # engine dependent config
 categories = ['general']
@@ -20,8 +22,8 @@ paging = True
 number_of_results = 5
 
 # search-url, invalid HTTPS certificate
-base_url = 'http://gigablast.com/'
-search_string = 'search?{query}&n={number_of_results}&s={offset}&xml=1&qh=0'
+base_url = 'https://gigablast.com/'
+search_string = 'search?{query}&n={number_of_results}&s={offset}&format=xml&qh=0&rxiyd={rxiyd}&rand={rand}'
 
 # specific xpath variables
 results_xpath = '//response//result'
@@ -37,7 +39,9 @@ def request(query, params):
     search_path = search_string.format(
         query=urlencode({'q': query}),
         offset=offset,
-        number_of_results=number_of_results)
+        number_of_results=number_of_results,
+        rxiyd=randint(10000, 10000000),
+        rand=int(time()))
 
     params['url'] = base_url + search_path
 
