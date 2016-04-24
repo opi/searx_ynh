@@ -9,8 +9,7 @@ is_public=$(sudo yunohost app setting searx is_public)
 path=${path%/}
 
 # Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev -y
-
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python -y
 
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
@@ -30,7 +29,7 @@ fi
 
 final_path=/opt/yunohost/searx
 sudo cp -r ../sources/* $final_path
-sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt --upgrade"
+sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt --upgrade && $final_path/manage.py update_packages"
 
 # Disable swapfile
 if [[ -v "$tmp_swap_file" ]];
