@@ -38,7 +38,7 @@ fi
 
 final_path=/opt/yunohost/searx
 sudo cp -r ../sources/* $final_path
-sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt --upgrade && $final_path/searx/manage.py update_packages"
+sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt --upgrade && $final_path/manage.sh update_packages"
 
 # Disable swapfile
 if [[ -v "$tmp_swap_file" ]];
