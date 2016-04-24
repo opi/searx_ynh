@@ -1,6 +1,7 @@
 {
     "name": "Searx",
     "id": "searx",
+    "packaging_format": 1,
     "description": {
         "en": "A privacy-respecting, hackable metasearch engine",
         "fr": "Un méta-moteur de recherche respectueux de la vie privée et bidouillable" 
