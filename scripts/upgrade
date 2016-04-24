@@ -64,7 +64,9 @@ else
 fi
 
 # Set permissions to searx directory
-sudo useradd searx -d $final_path
+if ! id -u searx > /dev/null 2>&1; then
+    sudo useradd searx -d $final_path
+fi
 sudo chown searx:searx -R $final_path
 
 # Copy uwsgi config
