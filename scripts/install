@@ -11,6 +11,18 @@ if [[ ! $? -eq 0 ]]; then
 	exit 1
 fi
 
+# Path need a trailing slash, and location does not.
+# See conf/nginx.conf* usage
+location=$path
+if [[ ! $path == */ ]]; then
+    # no trailing slash, so add it
+    path=$path/
+fi
+if [[ ! "$location" == "/" ]]; then
+    # remove possible trailing slash
+    location=${location%/}
+fi
+
 # Save specific settings
 sudo yunohost app setting searx is_public -v $is_public
 
@@ -71,7 +83,8 @@ sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
 sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
+sed -i "s@YNH_WWW_LOCATION@$location@g" ../conf/nginx.conf*
+sed -i "s@YNH_WWW_PATH@$path@g" ../conf/nginx.conf*
 if [ "$path" != "/" ];
 then
 	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf

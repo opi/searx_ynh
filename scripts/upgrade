@@ -5,8 +5,17 @@ domain=$(sudo yunohost app setting searx domain)
 path=$(sudo yunohost app setting searx path)
 is_public=$(sudo yunohost app setting searx is_public)
 
-# Remove trailing "/" for next commands
-path=${path%/}
+# Path need a trailing slash, and location does not.
+# See conf/nginx.conf usage
+location=$path
+if [[ ! $path == */ ]]; then
+    # no trailing slash, so add it
+    path=$path/
+fi
+if [[ ! "$location" == "/" ]]; then
+    # remove possible trailing slash
+    location=${location%/}
+fi
 
 # Check depends installation
 sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python -y
@@ -62,7 +71,8 @@ sudo chown searx:searx -R $final_path
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf*
+sed -i "s@YNH_WWW_LOCATION@$location@g" ../conf/nginx.conf*
+sed -i "s@YNH_WWW_PATH@$path@g" ../conf/nginx.conf*
 if [ "$path" != "/" ];
 then
     sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
