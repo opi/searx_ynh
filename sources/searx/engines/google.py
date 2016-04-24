@@ -46,11 +46,11 @@ country_to_hostname = {
     'NZ': 'www.google.co.nz',  # New Zealand
     'PH': 'www.google.com.ph',  # Philippines
     'SG': 'www.google.com.sg',  # Singapore
-    # 'US': 'www.google.us',  # United State, redirect to .com
+    # 'US': 'www.google.us',  # United States, redirect to .com
     'ZA': 'www.google.co.za',  # South Africa
     'AR': 'www.google.com.ar',  # Argentina
     'CL': 'www.google.cl',  # Chile
-    'ES': 'www.google.es',  # Span
+    'ES': 'www.google.es',  # Spain
     'MX': 'www.google.com.mx',  # Mexico
     'EE': 'www.google.ee',  # Estonia
     'FI': 'www.google.fi',  # Finland
@@ -61,7 +61,7 @@ country_to_hostname = {
     'HU': 'www.google.hu',  # Hungary
     'IT': 'www.google.it',  # Italy
     'JP': 'www.google.co.jp',  # Japan
-    'KR': 'www.google.co.kr',  # South Korean
+    'KR': 'www.google.co.kr',  # South Korea
     'LT': 'www.google.lt',  # Lithuania
     'LV': 'www.google.lv',  # Latvia
     'NO': 'www.google.no',  # Norway
@@ -76,9 +76,9 @@ country_to_hostname = {
     'SE': 'www.google.se',  # Sweden
     'TH': 'www.google.co.th',  # Thailand
     'TR': 'www.google.com.tr',  # Turkey
-    'UA': 'www.google.com.ua',  # Ikraine
-    # 'CN': 'www.google.cn',  # China, only from china ?
-    'HK': 'www.google.com.hk',  # Hong kong
+    'UA': 'www.google.com.ua',  # Ukraine
+    # 'CN': 'www.google.cn',  # China, only from China ?
+    'HK': 'www.google.com.hk',  # Hong Kong
     'TW': 'www.google.com.tw'  # Taiwan
 }
 
@@ -90,7 +90,7 @@ url_map = 'https://www.openstreetmap.org/'\
 search_path = '/search'
 search_url = ('https://{hostname}' +
               search_path +
-              '?{query}&start={offset}&gbv=1&gws_rd=cr')
+              '?{query}&start={offset}&gws_rd=cr&gbv=1&lr={lang}&ei=x')
 
 # other URLs
 map_hostname_start = 'maps.google.'
@@ -99,7 +99,7 @@ redirect_path = '/url'
 images_path = '/images'
 
 # specific xpath variables
-results_xpath = '//li[@class="g"]'
+results_xpath = '//div[@class="g"]'
 url_xpath = './/h3/a/@href'
 title_xpath = './/h3'
 content_xpath = './/span[@class="st"]'
@@ -160,6 +160,7 @@ def request(query, params):
     if params['language'] == 'all':
         language = 'en'
         country = 'US'
+        url_lang = ''
     else:
         language_array = params['language'].lower().split('_')
         if len(language_array) == 2:
@@ -167,6 +168,7 @@ def request(query, params):
         else:
             country = 'US'
         language = language_array[0] + ',' + language_array[0] + '-' + country
+        url_lang = 'lang_' + language_array[0]
 
     if use_locale_domain:
         google_hostname = country_to_hostname.get(country.upper(), default_hostname)
@@ -175,7 +177,8 @@ def request(query, params):
 
     params['url'] = search_url.format(offset=offset,
                                       query=urlencode({'q': query}),
-                                      hostname=google_hostname)
+                                      hostname=google_hostname,
+                                      lang=url_lang)
 
     params['headers']['Accept-Language'] = language
     params['headers']['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
@@ -209,29 +212,29 @@ def response(resp):
             parsed_url = urlparse(url, google_hostname)
 
             # map result
-            if ((parsed_url.netloc == google_hostname and parsed_url.path.startswith(maps_path))
-               or (parsed_url.netloc.startswith(map_hostname_start))):
-                x = result.xpath(map_near)
-                if len(x) > 0:
-                    # map : near the location
-                    results = results + parse_map_near(parsed_url, x, google_hostname)
-                else:
-                    # map : detail about a location
-                    results = results + parse_map_detail(parsed_url, result, google_hostname)
+            if parsed_url.netloc == google_hostname:
+                # TODO fix inside links
+                continue
+                # if parsed_url.path.startswith(maps_path) or parsed_url.netloc.startswith(map_hostname_start):
+                #     print "yooooo"*30
+                #     x = result.xpath(map_near)
+                #     if len(x) > 0:
+                #         # map : near the location
+                #         results = results + parse_map_near(parsed_url, x, google_hostname)
+                #     else:
+                #         # map : detail about a location
+                #         results = results + parse_map_detail(parsed_url, result, google_hostname)
+                # # google news
+                # elif parsed_url.path == search_path:
+                #     # skipping news results
+                #     pass
 
-            # google news
-            elif (parsed_url.netloc == google_hostname
-                  and parsed_url.path == search_path):
-                # skipping news results
-                pass
-
-            # images result
-            elif (parsed_url.netloc == google_hostname
-                  and parsed_url.path == images_path):
-                # only thumbnail image provided,
-                # so skipping image results
-                # results = results + parse_images(result, google_hostname)
-                pass
+                # # images result
+                # elif parsed_url.path == images_path:
+                #     # only thumbnail image provided,
+                #     # so skipping image results
+                #     # results = results + parse_images(result, google_hostname)
+                #     pass
 
             else:
                 # normal result
