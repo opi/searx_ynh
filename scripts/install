@@ -55,7 +55,7 @@ then
 fi
 sudo cp -r ../sources/* $final_path
 sudo virtualenv --system-site-packages $final_path
-sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt && $final_path/manage.sh update_packages"
+sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements.txt"
 
 # Disable swapfile
 if [[ -v "$tmp_swap_file" ]];
