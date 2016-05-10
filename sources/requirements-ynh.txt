@@ -2,6 +2,7 @@ certifi==2015.11.20.1
 flask==0.10.1
 flask-babel==0.9
 # lxml==3.5.0
+markupsafe==0.23
 ndg-httpsclient==0.4.0
 pyasn1==0.1.9
 pyasn1-modules==0.0.8
