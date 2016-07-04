@@ -48,7 +48,8 @@ from flask import (
     Flask, request, render_template, url_for, Response, make_response,
     redirect, send_from_directory
 )
-from flask.ext.babel import Babel, gettext, format_date
+from flask.ext.babel import Babel, gettext, format_date, format_decimal
+from flask.json import jsonify
 from searx import settings, searx_dir
 from searx.engines import (
     categories, engines, get_engines_stats, engine_shortcuts
@@ -64,7 +65,7 @@ from searx.search import Search
 from searx.query import Query
 from searx.autocomplete import searx_bang, backends as autocomplete_backends
 from searx.plugins import plugins
-from searx.preferences import Preferences
+from searx.preferences import Preferences, ValidationException
 
 # check if the pyopenssl, ndg-httpsclient, pyasn1 packages are installed.
 # They are needed for SSL connection without trouble, see #298
@@ -419,6 +420,7 @@ def index():
 
     if search.request_data.get('format') == 'json':
         return Response(json.dumps({'query': search.query,
+                                    'number_of_results': search.result_container.number_of_results,
                                     'results': search.result_container.get_ordered_results()}),
                         mimetype='application/json')
     elif search.request_data.get('format') == 'csv':
@@ -438,7 +440,7 @@ def index():
             'opensearch_response_rss.xml',
             results=search.result_container.get_ordered_results(),
             q=search.request_data['q'],
-            number_of_results=search.result_container.results_length(),
+            number_of_results=search.result_container.number_of_results,
             base_url=get_base_url()
         )
         return Response(response_rss, mimetype='text/xml')
@@ -449,6 +451,7 @@ def index():
         q=search.request_data['q'],
         selected_categories=search.categories,
         paging=search.paging,
+        number_of_results=format_decimal(search.result_container.number_of_results),
         pageno=search.pageno,
         base_url=get_base_url(),
         suggestions=search.result_container.suggestions,
@@ -683,6 +686,24 @@ def clear_cookies():
     for cookie_name in request.cookies:
         resp.delete_cookie(cookie_name)
     return resp
+
+
+@app.route('/config')
+def config():
+    return jsonify({'categories': categories.keys(),
+                    'engines': [{'name': engine_name,
+                                 'categories': engine.categories,
+                                 'enabled': not engine.disabled}
+                                for engine_name, engine in engines.items()],
+                    'plugins': [{'name': plugin.name,
+                                 'enabled': plugin.default_on}
+                                for plugin in plugins],
+                    'instance_name': settings['general']['instance_name'],
+                    'locales': settings['locales'],
+                    'default_locale': settings['ui']['default_locale'],
+                    'autocomplete': settings['search']['autocomplete'],
+                    'safe_search': settings['search']['safe_search'],
+                    'default_theme': settings['ui']['default_theme']})
 
 
 def run():
