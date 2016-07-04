@@ -1,14 +1,25 @@
 #!/bin/bash
+app="searx"
 
-domain=$(sudo yunohost app setting searx domain)
+# Source app helpers
+. /usr/share/yunohost/helpers
 
-sudo rm -Rf /opt/yunohost/searx
-sudo rm -f /etc/uwsgi/apps-enabled/searx.ini
-sudo rm -f /etc/uwsgi/apps-available/searx.ini
-sudo rm -f /etc/nginx/conf.d/$domain.d/searx.conf
+# Retrieve arguments
+domain=$(ynh_app_setting_get "$app" domain)
+
+# Remove files
+sudo rm -Rf /opt/yunohost/$app
+sudo rm -f /etc/uwsgi/apps-enabled/$app.ini
+sudo rm -f /etc/uwsgi/apps-available/$app.ini
+sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Remove services
 sudo service uwsgi stop
 sudo killall uwsgi
 sudo service uwsgi start
-sudo service nginx reload
-sudo yunohost app ssowatconf
+
+# Remove user
 sudo userdel searx
+
+# Reload Nginx
+sudo service nginx reload

@@ -1,27 +1,25 @@
 #!/bin/bash
+app="searx"
+
+# causes the shell to exit if any subcommand or pipeline returns a non-zero status
+set -e
+
+# Source app helpers
+. /usr/share/yunohost/helpers
 
 # Retrieve arguments
-domain=$1
-path=$2
-is_public=$3
+domain=$YNH_APP_ARG_DOMAIN
+path=$YNH_APP_ARG_PATH
+is_public=$YNH_APP_ARG_IS_PUBLIC
+
+# Remove trailing slash to path
+path=${path%/}
+#force location to be / or /foo
+location=${path:-/}
 
 # Check domain/path availability
-sudo yunohost app checkurl $domain$path -a searx
-if [[ ! $? -eq 0 ]]; then
-	exit 1
-fi
-
-# Path need a trailing slash, and location does not.
-# See conf/nginx.conf* usage
-location=$path
-if [[ ! $path == */ ]]; then
-    # no trailing slash, so add it
-    path=$path/
-fi
-if [[ ! "$location" == "/" ]]; then
-    # remove possible trailing slash
-    location=${location%/}
-fi
+sudo yunohost app checkurl $domain$path -a $app \
+    || (echo "Path not available: $domain$path" && exit 1)
 
 # Save specific settings
 sudo yunohost app setting searx is_public -v $is_public
@@ -46,7 +44,7 @@ then
 	sudo swapon $tmp_swap_file
 fi
 
-final_path=/opt/yunohost/searx
+final_path=/opt/yunohost/$app
 
 # Init virtualenv
 if [ ! -d $final_path ];
@@ -79,17 +77,17 @@ sudo useradd searx -d $final_path
 sudo chown searx:searx -R $final_path
 
 # Copy uwsgi config
-sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/
-sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/
+sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
+sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/$app.ini
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sed -i "s@YNH_WWW_LOCATION@$location@g" ../conf/nginx.conf*
 sed -i "s@YNH_WWW_PATH@$path@g" ../conf/nginx.conf*
 if [ "$path" != "/" ];
 then
-	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/searx.conf
+	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/$app.conf
 else
-	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/searx.conf
+	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 fi
 
 # Fix permission
@@ -99,11 +97,10 @@ fi
 ## Reload Nginx and regenerate SSOwat conf
 sudo service nginx reload
 sudo service uwsgi restart
-sudo yunohost service add uwsgi -l /var/log/uwsgi/app/searx.log
+sudo yunohost service add uwsgi -l /var/log/uwsgi/app/$app.log
 
 if [ "$is_public" = "Yes" ];
 then
-	sudo yunohost app setting searx unprotected_uris -v "/"
+	sudo yunohost app setting $app unprotected_uris -v "/"
 fi
-sudo yunohost app ssowatconf
 

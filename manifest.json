@@ -41,7 +41,7 @@
                 "default": "/searx"
             },
             {
-                "name": "public_site",
+                "name": "is_public",
                 "ask": {
                     "en": "Is it a public Searx site ?",
                     "fr": "Est-ce un site public ?"
