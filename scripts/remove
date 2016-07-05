@@ -13,14 +13,17 @@ sudo rm -f /etc/uwsgi/apps-enabled/$app.ini
 sudo rm -f /etc/uwsgi/apps-available/$app.ini
 sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 
-# Remove services
+# Stop uwsgi
 sudo service uwsgi stop
 sudo killall uwsgi
-sudo service uwsgi start
 
 # Remove user
 if id -u searx > /dev/null 2>&1; then
     sudo userdel searx
 fi
+
+# Restart uwsgi
+sudo service uwsgi start
+
 # Reload Nginx
 sudo service nginx reload
