@@ -19,7 +19,8 @@ sudo killall uwsgi
 sudo service uwsgi start
 
 # Remove user
-sudo userdel searx
-
+if id -u searx > /dev/null 2>&1; then
+    sudo userdel searx
+fi
 # Reload Nginx
 sudo service nginx reload
