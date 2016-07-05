@@ -35,18 +35,18 @@ sudo apt-get install git build-essential libxslt-dev python-dev python-virtualen
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
 then
-	# It is NOT possible to setup a swap file on a tmpfs filesystem
-	mount | grep /tmp | grep tmpfs > /dev/null 2>&1
-	if [ $? = 1 ];
-	then
-		tmp_swap_file=/tmp/searx_swapfile
-	else
-		tmp_swap_file=/var/cache/searx_swapfile
-	fi
-	sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
-	sudo chmod 600 $tmp_swap_file
-	sudo mkswap $tmp_swap_file
-	sudo swapon $tmp_swap_file
+    # It is NOT possible to setup a swap file on a tmpfs filesystem
+    mount | grep /tmp | grep tmpfs > /dev/null 2>&1
+    if [ $? = 1 ];
+    then
+        tmp_swap_file=/tmp/searx_swapfile
+    else
+        tmp_swap_file=/var/cache/searx_swapfile
+    fi
+    sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
+    sudo chmod 600 $tmp_swap_file
+    sudo mkswap $tmp_swap_file
+    sudo swapon $tmp_swap_file
 fi
 
 final_path=/opt/yunohost/$app
@@ -54,7 +54,7 @@ final_path=/opt/yunohost/$app
 # Init virtualenv
 if [ ! -d $final_path ];
 then
-	sudo mkdir -p $final_path
+    sudo mkdir -p $final_path
 fi
 sudo cp -r ../sources/* $final_path
 sudo virtualenv --system-site-packages $final_path
@@ -63,8 +63,8 @@ sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requ
 # Disable swapfile
 if [[ -v "$tmp_swap_file" ]];
 then
-	sudo swapoff $tmp_swap_file
-	sudo rm -f $tmp_swap_file
+    sudo swapoff $tmp_swap_file
+    sudo rm -f $tmp_swap_file
 fi
 
 #Configuration Searx
@@ -72,9 +72,9 @@ sudo cp ../conf/settings.yml $final_path/searx/
 sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" $final_path/searx/settings.yml
 if [ "$path" != "/" ];
 then
-	sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" $final_path/searx/settings.yml
+    sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" $final_path/searx/settings.yml
 else
-	sudo sed -i -e "s@ynhbaseurl@False@g" $final_path/searx/settings.yml
+    sudo sed -i -e "s@ynhbaseurl@False@g" $final_path/searx/settings.yml
 fi
 
 # Set permissions to searx directory
@@ -90,9 +90,9 @@ sed -i "s@YNH_WWW_LOCATION@$location@g" ../conf/nginx.conf*
 sed -i "s@YNH_WWW_PATH@$path@g" ../conf/nginx.conf*
 if [ "$path" != "/" ];
 then
-	sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/$app.conf
+    sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/$app.conf
 else
-	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+    sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 fi
 
 # Fix permission
@@ -106,6 +106,6 @@ sudo yunohost service add uwsgi -l /var/log/uwsgi/app/$app.log
 
 if [ "$is_public" = "Yes" ];
 then
-	sudo yunohost app setting $app unprotected_uris -v "/"
+    sudo yunohost app setting $app unprotected_uris -v "/"
 fi
 

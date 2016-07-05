@@ -23,17 +23,17 @@ sudo apt-get install git build-essential libxslt-dev python-dev python-virtualen
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
 then
-	mount | grep /tmp | grep tmpfs > /dev/null 2>&1
-	if [ $? = 1 ];
-	then
-		tmp_swap_file=/tmp/searx_swapfile
-	else
-		tmp_swap_file=/var/cache/
-	fi
-	sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
-	sudo chmod 600 $tmp_swap_file
-	sudo mkswap $tmp_swap_file
-	sudo swapon $tmp_swap_file
+    mount | grep /tmp | grep tmpfs > /dev/null 2>&1
+    if [ $? = 1 ];
+    then
+        tmp_swap_file=/tmp/searx_swapfile
+    else
+        tmp_swap_file=/var/cache/
+    fi
+    sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
+    sudo chmod 600 $tmp_swap_file
+    sudo mkswap $tmp_swap_file
+    sudo swapon $tmp_swap_file
 fi
 
 final_path=/opt/yunohost/$app
