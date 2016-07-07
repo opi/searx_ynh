@@ -17,9 +17,10 @@ sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
 sudo service uwsgi stop
 sudo killall uwsgi
 
-# Remove user
+# Remove user (kill attached process before)
 if id -u searx > /dev/null 2>&1; then
-    sudo userdel searx
+    sudo killall -KILL -u searx
+    sudo userdel --force searx
 fi
 
 # Restart uwsgi
