@@ -11,8 +11,8 @@
     },
     "url": "https://asciimoo.github.io/searx/",
     "maintainer": {
-        "name": "beudbeud",
-	"email": "beudbeud@beudibox.fr"
+        "name": "opi",
+	"email": "opi@zeropi.net"
     },
     "multi_instance": "false",
     "services": [
@@ -41,7 +41,7 @@
                 "default": "/searx"
             },
             {
-                "name": "public_site",
+                "name": "is_public",
                 "ask": {
                     "en": "Is it a public Searx site ?",
                     "fr": "Est-ce un site public ?"
