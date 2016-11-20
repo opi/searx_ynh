@@ -43,7 +43,7 @@ fi
 sudo yunohost app setting $app is_public -v $is_public
 
 # Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python -y
+sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python -y
 
 # Check Swap
 if [ $(sudo swapon -s | wc -l) = 1 ];
