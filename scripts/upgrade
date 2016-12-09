@@ -37,7 +37,9 @@ then
 fi
 
 final_path=/opt/yunohost/$app
-sudo cp -r ../sources/* $final_path
+wget https://github.com/asciimoo/searx/archive/v0.10.0.tar.gz
+tar xvf v0.10.0.tar.gz && cp -rf searx-0.10.0/* ../sources
+sudo cp -rf ../sources/* $final_path
 sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements-ynh.txt --upgrade"
 
 # Disable swapfile
