@@ -7,7 +7,8 @@
     },
     "description": {
         "en": "A privacy-respecting, hackable metasearch engine",
-        "fr": "Un méta-moteur de recherche respectueux de la vie privée et bidouillable" 
+        "fr": "Un méta-moteur de recherche respectueux de la vie privée et bidouillable", 
+	"de": "Eine Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist."
     },
     "url": "https://asciimoo.github.io/searx/",
     "maintainer": {
@@ -26,7 +27,8 @@
                 "type": "domain",
                 "ask": {
                     "en": "Choose a domain for Searx",
-                    "fr": "Choisissez un domaine pour Searx"
+                    "fr": "Choisissez un domaine pour Searx",
+     		    "de": "Wählen einen Domain-Namen für Searx"
                 },
                 "example": "domain.org"
             },
@@ -35,7 +37,8 @@
                 "type": "path",
                 "ask": {
                     "en": "Choose a path for Searx",
-                    "fr": "Choisissez un chemin pour Searx"
+                    "fr": "Choisissez un chemin pour Searx",
+	   	    "de": "Wählen einen Pfad für Searx"
                 },
                 "example": "/searx",
                 "default": "/searx"
@@ -44,7 +47,8 @@
                 "name": "is_public",
                 "ask": {
                     "en": "Is it a public Searx site ?",
-                    "fr": "Est-ce un site public ?"
+                    "fr": "Est-ce un site public ?",
+		    "de": "Ist es eine öffentliche Applikation ?"
                 },
                 "choices": ["Yes", "No"],
                 "default": "Yes"
