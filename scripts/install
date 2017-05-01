@@ -1,113 +1,147 @@
 #!/bin/bash
-app="searx"
 
-# causes the shell to exit if any subcommand or pipeline returns a non-zero status
-set -e
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Source app helpers
-. /usr/share/yunohost/helpers
+source _common.sh
+source /usr/share/yunohost/helpers
 
-# Retrieve arguments
+#=================================================
+# MANAGE FAILURE OF THE SCRIPT
+#=================================================
+
+ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
+
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#=================================================
+
 domain=$YNH_APP_ARG_DOMAIN
-path=$YNH_APP_ARG_PATH
+path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
 
-# Force path to start with a /
-if [ "${path:0:1}" != "/" ]; then
-    path="/$path"
-fi
+app=$YNH_APP_INSTANCE_NAME
 
-# Remove trailing slash to path
-path=${path%/}
-#force location to be / or /foo
-location=${path:-/}
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
+#=================================================
 
-# Check domain/path availability
-sudo yunohost app checkurl $domain$path -a $app \
-    || (echo "Path not available: $domain$path" && exit 1)
+path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
+CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
+# Check final_path
+final_path="/opt/yunohost/$app"
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-# Save specific settings
-sudo yunohost app setting searx is_public -v $is_public
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
 
-# Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python -y
+ynh_app_setting_set $app domain $domain
+ynh_app_setting_set $app path $path_url
+ynh_app_setting_set $app is_public $is_public
 
-# Check Swap
-if [ $(sudo swapon -s | wc -l) = 1 ];
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+ynh_nginx_config
+if [ "$path_url" = "/" ]
 then
-    # It is NOT possible to setup a swap file on a tmpfs filesystem
-    mount | grep /tmp | grep tmpfs > /dev/null 2>&1
-    if [ $? = 1 ];
-    then
-        tmp_swap_file=/tmp/searx_swapfile
-    else
-        tmp_swap_file=/var/cache/searx_swapfile
-    fi
-    sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
-    sudo chmod 600 $tmp_swap_file
-    sudo mkswap $tmp_swap_file
-    sudo swapon $tmp_swap_file
-fi
-
-final_path=/opt/yunohost/$app
-
-# Init virtualenv
-if [ ! -d $final_path ];
-then
-    sudo mkdir -p $final_path
-fi
-wget https://github.com/asciimoo/searx/archive/v0.10.0.tar.gz
-tar xvf v0.10.0.tar.gz && cp -rf searx-0.10.0/* ../sources
-sudo cp -r ../sources/* $final_path
-sudo virtualenv --system-site-packages $final_path
-sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements-ynh.txt"
-
-# Disable swapfile
-if [[ -v "$tmp_swap_file" ]];
-then
-    sudo swapoff $tmp_swap_file
-    sudo rm -f $tmp_swap_file
-fi
-
-#Configuration Searx
-sudo cp ../conf/settings.yml $final_path/searx/
-sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" $final_path/searx/settings.yml
-if [ "$path" != "/" ];
-then
-    sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" $final_path/searx/settings.yml
+	ynh_replace_string "__PATH_NO_ROOT__" "" /etc/nginx/conf.d/$domain.d/$app.conf
+	sudo sed --in-place '/#noroot*/d' /etc/nginx/conf.d/$domain.d/$app.conf
 else
-    sudo sed -i -e "s@ynhbaseurl@False@g" $final_path/searx/settings.yml
+	ynh_replace_string "#noroot" "" /etc/nginx/conf.d/$domain.d/$app.conf
+	ynh_replace_string "__PATH_NO_ROOT__" "$path_url" /etc/nginx/conf.d/$domain.d/$app.conf
 fi
+ynh_store_checksum_config "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-# Set permissions to searx directory
-sudo useradd searx -d $final_path
-sudo chown searx:searx -R $final_path
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
 
-# Copy uwsgi config
+ynh_system_user_create $app	# Créer un utilisateur système dédié à l'app
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+ynh_app_setting_set $app final_path $final_path
+ynh_setup_source	# Télécharge la source, décompresse et copie dans $final_path
+
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+# INSTALL SEARX IN A VIRTUALENV
+#=================================================
+
+sudo virtualenv --system-site-packages "$final_path"
+sudo bash -c "source $final_path/bin/activate && pip install --requirement $final_path/requirements-ynh.txt"
+
+#=================================================
+# CONFIGURE SEARX
+#=================================================
+
+sudo cp ../conf/settings.yml "$final_path/searx/"
+
+# Generate a secret key
+ynh_replace_string "__SECRETKEY__" "$(ynh_string_random)" "$final_path/searx/settings.yml"
+
+# Modify the base_url parameter, if it's installed in a subpath
+if [ "$path_url" != "/" ]
+then
+	ynh_replace_string "__BASEURL__" "https://${domain}${path_url}/" "$final_path/searx/settings.yml"
+else
+	ynh_replace_string "__BASEURL__" "False" "$final_path/searx/settings.yml"
+fi
+ynh_store_checksum_config "$final_path/searx/settings.yml"
+
+#=================================================
+# SET PERMISSIONS ON SEARX DIRECTORY
+#=================================================
+
+sudo chown $app: --recursive "$final_path"
+
+#=================================================
+# CONFIGURE UWSGI FOR SEARX
+#=================================================
+
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
-sudo ln -s /etc/uwsgi/apps-available/searx.ini /etc/uwsgi/apps-enabled/$app.ini
+ynh_replace_string "__APP__" "$app" /etc/uwsgi/apps-available/$app.ini
+ynh_replace_string "__FINALPATH__" "$final_path" /etc/uwsgi/apps-available/$app.ini
+sudo ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
 
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sed -i "s@YNH_WWW_LOCATION@$location@g" ../conf/nginx.conf*
-sed -i "s@YNH_WWW_PATH@$path@g" ../conf/nginx.conf*
-if [ "$path" != "/" ];
+#=================================================
+# ENABLE UWSGI SERVICE IN ADMIN PANEL
+#=================================================
+
+sudo systemctl restart uwsgi
+# Ajoute le service au monitoring de Yunohost.
+sudo yunohost service add uwsgi --log "/var/log/uwsgi/app/$app.log"
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+if [ $is_public -eq 1 ]
 then
-    sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/$app.conf
-else
-    sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+	ynh_app_setting_set $app skipped_uris "/"
 fi
 
-# Fix permission
-#sudo find $final_path/ -type d -exec chmod 2755 {} \;
-#sudo find $final_path/ -type f -exec chmod g+r,o+r {} \;
+#=================================================
+# RELOAD NGINX
+#=================================================
 
-## Reload Nginx and regenerate SSOwat conf
-sudo service nginx reload
-sudo service uwsgi restart
-sudo yunohost service add uwsgi -l /var/log/uwsgi/app/$app.log
-
-if [ "$is_public" = "Yes" ];
-then
-    sudo yunohost app setting $app unprotected_uris -v "/"
-fi
-
+sudo systemctl reload nginx

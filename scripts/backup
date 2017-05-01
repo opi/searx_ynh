@@ -1,21 +1,55 @@
 #!/bin/bash
-app="searx"
 
-# causes the shell to exit if any subcommand or pipeline returns a non-zero status
-set -e
+#=================================================
+# GENERIC STARTING
+#=================================================
+# MANAGE FAILURE OF THE SCRIPT
+#=================================================
 
-# Source YNH helpers
-. /usr/share/yunohost/helpers
+# Exit on command errors and treat unset variables as an error
+set -eu
 
-# Retrieve arguments
-domain=$(ynh_app_setting_get "$app" domain)
-path=$(ynh_app_setting_get "$app" path)
-is_public=$(ynh_app_setting_get "$app" is_public)
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Backup sources & data
-ynh_backup "/opt/yunohost/$app" "sources"
+if [ ! -e _common.sh ]; then
+	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
+fi
+source _common.sh
+source /usr/share/yunohost/helpers
 
-# Copy Nginx conf
-ynh_backup "/etc/uwsgi/apps-available/$app.ini" "conf/searx.ini"
-ynh_backup "/opt/yunohost/$app/searx/settings.yml" "conf/settings.yml"
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf" "conf/nginx.conf"
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+# Récupère les infos de l'application.
+app=$YNH_APP_INSTANCE_NAME
+
+final_path=$(ynh_app_setting_get $app final_path)
+domain=$(ynh_app_setting_get $app domain)
+
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP OF THE MAIN DIR OF THE APP
+#=================================================
+
+CHECK_SIZE "$final_path"
+ynh_backup "$final_path" "sources"
+
+#=================================================
+# BACKUP OF THE NGINX CONFIGURATION
+#=================================================
+
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf" "nginx.conf"
+
+#=================================================
+# SPECIFIC BACKUP
+#=================================================
+# BACKUP OF THE UWSGI CONFIG
+#=================================================
+
+ynh_backup "/etc/uwsgi/apps-available/$app.ini" "uwsgi_conf"
