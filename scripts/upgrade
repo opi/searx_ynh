@@ -1,94 +1,145 @@
 #!/bin/bash
-app="searx"
 
-# causes the shell to exit if any subcommand or pipeline returns a non-zero status
-set -e
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Source app helpers
-. /usr/share/yunohost/helpers
+source _common.sh
+source /usr/share/yunohost/helpers
 
-# Retrieve arguments
-domain=$(ynh_app_setting_get "$app" domain)
-path=$(ynh_app_setting_get "$app" path)
-is_public=$(ynh_app_setting_get "$app" is_public)
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
-# Remove trailing slash to path
-path=${path%/}
-#force location to be / or /foo
-location=${path:-/}
+app=$YNH_APP_INSTANCE_NAME
 
-# Check depends installation
-sudo apt-get install git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-pybabel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python -y
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
+is_public=$(ynh_app_setting_get $app is_public)
+final_path=$(ynh_app_setting_get $app final_path)
 
-# Check Swap
-if [ $(sudo swapon -s | wc -l) = 1 ];
-then
-    mount | grep /tmp | grep tmpfs > /dev/null 2>&1
-    if [ $? = 1 ];
-    then
-        tmp_swap_file=/tmp/searx_swapfile
-    else
-        tmp_swap_file=/var/cache/
-    fi
-    sudo dd if=/dev/zero of=$tmp_swap_file bs=1M count=256
-    sudo chmod 600 $tmp_swap_file
-    sudo mkswap $tmp_swap_file
-    sudo swapon $tmp_swap_file
+#=================================================
+# FIX OLD THINGS
+#=================================================
+
+if [ "$is_public" = "Yes" ]; then
+	ynh_app_setting_set $app is_public 1	# Fixe is_public en booléen
+	is_public=1
+elif [ "$is_public" = "No" ]; then
+	ynh_app_setting_set $app is_public 0
+	is_public=0
 fi
 
-final_path=/opt/yunohost/$app
-wget https://github.com/asciimoo/searx/archive/v0.10.0.tar.gz
-tar xvf v0.10.0.tar.gz && cp -rf searx-0.10.0/* ../sources
-sudo cp -rf ../sources/* $final_path
-sudo bash -c "source $final_path/bin/activate && pip install -r $final_path/requirements-ynh.txt --upgrade"
-
-# Disable swapfile
-if [[ -v "$tmp_swap_file" ]];
-then
-    sudo swapoff $tmp_swap_file
-    sudo rm -f $tmp_swap_file
+if [ -z $final_path ]; then	# Si final_path n'est pas renseigné dans app setting
+	final_path="/opt/yunohost/$app"
+	ynh_app_setting_set $app final_path $final_path
 fi
 
-#Configuration Searx
-sudo cp ../conf/settings.yml $final_path/searx/
-sudo sed -i -e "s/ultrasecretkey/`openssl rand -hex 16`/g" $final_path/searx/settings.yml
-if [ "$path" != "/" ];
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+
+BACKUP_BEFORE_UPGRADE	# Backup the current version of the app
+ynh_clean_setup () {
+	BACKUP_FAIL_UPGRADE	# restore it if the upgrade fails
+}
+ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
+
+#=================================================
+# CHECK THE PATH
+#=================================================
+
+path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+ynh_setup_source	# Télécharge la source, décompresse et copie dans $final_path
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+ynh_nginx_config
+if [ "$path_url" = "/" ]
 then
-    sudo sed -i -e "s@ynhbaseurl@https://$domain$path/@g" $final_path/searx/settings.yml
+	ynh_replace_string "__PATH_NO_ROOT__" "" /etc/nginx/conf.d/$domain.d/$app.conf
+	sudo sed --in-place '/#noroot*/d' /etc/nginx/conf.d/$domain.d/$app.conf
 else
-    sudo sed -i -e "s@ynhbaseurl@False@g" $final_path/searx/settings.yml
+	ynh_replace_string "#noroot" "" /etc/nginx/conf.d/$domain.d/$app.conf
+	ynh_replace_string "__PATH_NO_ROOT__" "$path_url" /etc/nginx/conf.d/$domain.d/$app.conf
 fi
+ynh_store_checksum_config "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-# Set permissions to searx directory
-if ! id -u searx > /dev/null 2>&1; then
-    sudo useradd searx -d $final_path
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $app	# Create the dedicated user, if not exist
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# UPGRADE SEARX IN ITS VIRTUALENV
+#=================================================
+
+sudo virtualenv --system-site-packages "$final_path"
+sudo bash -c "source $final_path/bin/activate && pip install --requirement $final_path/requirements-ynh.txt --upgrade"
+
+#=================================================
+# CONFIGURE SEARX
+#=================================================
+
+# Créé un backup du fichier de config si il a été modifié.
+ynh_compare_checksum_config "$final_path/searx/settings.yml"
+
+sudo cp ../conf/settings.yml "$final_path/searx/"
+
+# Generate a secret key
+ynh_replace_string "__SECRETKEY__" "$(ynh_string_random)" "$final_path/searx/settings.yml"
+
+# Modify the base_url parameter, if it's installed in a subpath
+if [ "$path_url" != "/" ]
+then
+	ynh_replace_string "__BASEURL__" "https://${domain}${path_url}/" "$final_path/searx/settings.yml"
+else
+	ynh_replace_string "__BASEURL__" "False" "$final_path/searx/settings.yml"
 fi
-sudo chown searx:searx -R $final_path
+ynh_store_checksum_config "$final_path/searx/settings.yml"
 
-# Copy uwsgi config
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# SECURING FILES AND DIRECTORIES
+#=================================================
+
+sudo chown $app: --recursive "$final_path"
+
+#=================================================
+# CONFIGURE UWSGI FOR SEARX
+#=================================================
+
 sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
+ynh_replace_string "__APP__" "$app" /etc/uwsgi/apps-available/$app.ini
+ynh_replace_string "__FINALPATH__" "$final_path" /etc/uwsgi/apps-available/$app.ini
+sudo systemctl restart uwsgi
 
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sed -i "s@YNH_WWW_LOCATION@$location@g" ../conf/nginx.conf*
-sed -i "s@YNH_WWW_PATH@$path@g" ../conf/nginx.conf*
-if [ "$path" != "/" ];
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+if [ $is_public -eq 1 ]
 then
-    sudo cp ../conf/nginx.conf-noroot /etc/nginx/conf.d/$domain.d/$app.conf
-else
-    sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+	ynh_app_setting_set $app skipped_uris "/"
 fi
 
-# Fix permission
-#sudo find $final_path/ -type d -exec chmod 2755 {} \;
-#sudo find $final_path/ -type f -exec chmod g+r,o+r {} \;
+#=================================================
+# RELOAD NGINX
+#=================================================
 
-if [ "$is_public" = "Yes" ];
-then
-    sudo yunohost app setting searx skipped_uris -d
-    sudo yunohost app setting searx unprotected_uris -v "/"
-fi
-
-## Reload services
-sudo service nginx reload
-sudo service uwsgi restart
-
+sudo systemctl reload nginx

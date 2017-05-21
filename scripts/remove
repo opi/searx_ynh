@@ -1,30 +1,74 @@
 #!/bin/bash
-app="searx"
 
-# Source app helpers
-. /usr/share/yunohost/helpers
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Retrieve arguments
-domain=$(ynh_app_setting_get "$app" domain)
+source _common.sh
+source /usr/share/yunohost/helpers
 
-# Remove files
-sudo rm -Rf /opt/yunohost/$app
-sudo rm -f /etc/uwsgi/apps-enabled/$app.ini
-sudo rm -f /etc/uwsgi/apps-available/$app.ini
-sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
-# Stop uwsgi
-sudo service uwsgi stop
-sudo killall uwsgi
+app=$YNH_APP_INSTANCE_NAME
 
-# Remove user (kill attached process before)
-if id -u searx > /dev/null 2>&1; then
-    sudo killall -KILL -u searx
-    sudo userdel --force searx
+domain=$(ynh_app_setting_get $app domain)
+
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# STOP AND REMOVE SERVICE
+#=================================================
+
+# Suppression de la configuration uwsgi
+sudo systemctl stop uwsgi
+if [ -h "/etc/uwsgi/apps-enabled/$app.ini" ]; then
+	echo "Delete uwsgi config"
+	ynh_secure_remove "/etc/uwsgi/apps-enabled/$app.ini"
+fi
+ynh_secure_remove "/etc/uwsgi/apps-available/$app.ini"
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+
+ynh_remove_app_dependencies
+
+#=================================================
+# REMOVE THE MAIN DIR OF THE APP
+#=================================================
+
+ynh_secure_remove "/opt/yunohost/$app"
+
+#=================================================
+# REMOVE THE NGINX CONFIGURATION
+#=================================================
+
+ynh_remove_nginx_config	# Suppression de la configuration nginx
+
+#=================================================
+# DISABLE SERVICE IN ADMIN PANEL
+#=================================================
+
+if [ -e /etc/init.d/uwsgi ]
+then
+	# Redémarre le service uwsgi si il n'est pas désinstallé.
+	sudo systemctl start uwsgi
+else
+	if sudo yunohost service status | grep -q uwsgi	# Test l'existence du service dans Yunohost
+	then
+		echo "Remove uwsgi service"
+		sudo yunohost service remove uwsgi
+	fi
 fi
 
-# Restart uwsgi
-sudo service uwsgi start
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
 
-# Reload Nginx
-sudo service nginx reload
+ynh_system_user_delete $app

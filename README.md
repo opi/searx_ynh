@@ -1,4 +1,7 @@
-# Searx package for YunoHost
+Searx for YunoHost
+==================
+
+[Yunohost project](https://yunohost.org/#/)
 
 Searx is a privacy-respecting, hackable metasearch engine. 
 For more information ,visit [Searx homepage](https://asciimoo.github.io/searx/).
