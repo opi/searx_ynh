@@ -46,18 +46,14 @@ test ! -d $final_path \
 # RESTORE OF THE NGINX CONFIGURATION
 #=================================================
 
-conf=/etc/nginx/conf.d/$domain.d/$app.conf
-if [ -f $conf ]; then
-	ynh_die "There is already a nginx conf file at this path: $conf "
-fi
-sudo cp -a ./nginx.conf $conf
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE OF THE MAIN DIR OF THE APP
 #=================================================
 
-sudo mkdir -p $final_path
-sudo cp -a ./sources/. $final_path
+sudo mkdir -p /opt/yunohost
+ynh_restore_file "$final_path"
 
 #=================================================
 # INSTALL DEPENDENCIES
@@ -77,13 +73,13 @@ ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 # RESTORE USER RIGHTS
 #=================================================
 
-sudo chown $app: -R $final_path
+sudo chown $app: --recursive "$final_path"
 
 #=================================================
 # RESTORE THE UWSGI CONFIG
 #=================================================
 
-sudo cp -a ./uwsgi_conf /etc/uwsgi/apps-available/$app.ini
+ynh_restore_file "/etc/uwsgi/apps-available/$app.ini"
 sudo ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
 
 #=================================================
