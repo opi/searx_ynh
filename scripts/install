@@ -64,7 +64,7 @@ else
 	ynh_replace_string "#noroot" "" /etc/nginx/conf.d/$domain.d/$app.conf
 	ynh_replace_string "__PATH_NO_ROOT__" "$path_url" /etc/nginx/conf.d/$domain.d/$app.conf
 fi
-ynh_store_checksum_config "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # CREATE DEDICATED USER
@@ -77,7 +77,7 @@ ynh_system_user_create $app	# Créer un utilisateur système dédié à l'app
 #=================================================
 
 ynh_app_setting_set $app final_path $final_path
-ynh_setup_source	# Télécharge la source, décompresse et copie dans $final_path
+ynh_setup_source "$final_path"	# Télécharge la source, décompresse et copie dans $final_path
 
 #=================================================
 # SPECIFIC SETUP
@@ -104,7 +104,7 @@ then
 else
 	ynh_replace_string "__BASEURL__" "False" "$final_path/searx/settings.yml"
 fi
-ynh_store_checksum_config "$final_path/searx/settings.yml"
+ynh_store_file_checksum "$final_path/searx/settings.yml"
 
 #=================================================
 # SET PERMISSIONS ON SEARX DIRECTORY

@@ -38,13 +38,13 @@ domain=$(ynh_app_setting_get $app domain)
 #=================================================
 
 CHECK_SIZE "$final_path"
-ynh_backup "$final_path" "sources"
+ynh_backup "$final_path" "${YNH_APP_BACKUP_DIR}$final_path"
 
 #=================================================
 # BACKUP OF THE NGINX CONFIGURATION
 #=================================================
 
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf" "nginx.conf"
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf" "${YNH_APP_BACKUP_DIR}/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # SPECIFIC BACKUP
@@ -52,4 +52,4 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf" "nginx.conf"
 # BACKUP OF THE UWSGI CONFIG
 #=================================================
 
-ynh_backup "/etc/uwsgi/apps-available/$app.ini" "uwsgi_conf"
+ynh_backup "/etc/uwsgi/apps-available/$app.ini" "${YNH_APP_BACKUP_DIR}/etc/uwsgi/apps-available/$app.ini"
