@@ -2,9 +2,6 @@
 	"name": "Searx",
 	"id": "searx",
 	"packaging_format": 1,
-	"requirements": {
-		"yunohost": ">= 2.4"
-	},
 	"description": {
 		"en": "A privacy-respecting, hackable metasearch engine",
 		"fr": "Un méta-moteur de recherche respectueux de la vie privée et bidouillable", 
@@ -16,6 +13,9 @@
 	"maintainer": {
 		"name": "opi",
 		"email": "opi@zeropi.net"
+	},
+	"requirements": {
+        "yunohost": ">= 2.7.2"
 	},
 	"multi_instance": false,
 	"services": [

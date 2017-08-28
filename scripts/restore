@@ -13,12 +13,12 @@ set -eu
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
-fi
-source _common.sh
+# if [ ! -e _common.sh ]; then
+# 	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
+# 	cp ../settings/scripts/_common.sh ./_common.sh
+# 	chmod a+rx _common.sh
+# fi
+# source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -35,7 +35,7 @@ path_url=$(ynh_app_setting_get $app path)
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
 
-sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
+ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
@@ -52,7 +52,7 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 # RESTORE OF THE MAIN DIR OF THE APP
 #=================================================
 
-sudo mkdir -p /opt/yunohost
+mkdir -p /opt/yunohost
 ynh_restore_file "$final_path"
 
 #=================================================
@@ -65,7 +65,8 @@ ynh_install_app_dependencies libxslt-dev virtualenv python-pybabel zlib1g-dev li
 # RECREATE OF THE DEDICATED USER
 #=================================================
 
-ynh_system_user_create $app	# Recreate the dedicated user, if not exist
+# Create the dedicated user (if not existing)
+ynh_system_user_create $app
 
 #=================================================
 # SPECIFIC RESTORE
@@ -73,14 +74,14 @@ ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 # RESTORE USER RIGHTS
 #=================================================
 
-sudo chown $app: --recursive "$final_path"
+chown $app: --recursive "$final_path"
 
 #=================================================
 # RESTORE THE UWSGI CONFIG
 #=================================================
 
 ynh_restore_file "/etc/uwsgi/apps-available/$app.ini"
-sudo ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
+ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
 
 #=================================================
 # GENERIC FINALISATION
@@ -88,5 +89,5 @@ sudo ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
 # RELOAD NGINX AND UWSGI
 #=================================================
 
-sudo systemctl restart uwsgi
-sudo systemctl reload nginx
+systemctl restart uwsgi
+systemctl reload nginx
