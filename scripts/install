@@ -94,7 +94,7 @@ ynh_setup_source "$final_path"
 #=================================================
 
 virtualenv --system-site-packages "$final_path"
-bash -c "source $final_path/bin/activate && pip install --requirement $final_path/requirements-ynh.txt"
+bash -c "source $final_path/bin/activate && pip install -U pip setuptools && pip install --requirement $final_path/requirements-ynh.txt"
 
 #=================================================
 # CONFIGURE SEARX
