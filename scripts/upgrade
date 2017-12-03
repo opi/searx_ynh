@@ -62,6 +62,9 @@ path_url=$(ynh_normalize_url_path $path_url)
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
+# Verify the checksum and backup the file if it's different
+ynh_backup_if_checksum_is_different "$final_path/searx/settings.yml"
+
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source "$final_path"
 
@@ -101,20 +104,18 @@ bash -c "source $final_path/bin/activate && pip install -U pip setuptools && pip
 # CONFIGURE SEARX
 #=================================================
 
-# Verify the checksum and backup the file if it's different
-ynh_backup_if_checksum_is_different "$final_path/searx/settings.yml"
-
-cp ../conf/settings.yml "$final_path/searx/"
+# Change instance name
+ynh_replace_string "instance_name : \"searx\"" "instance_name : \"YunoSearx\"" "$final_path/searx/settings.yml"
 
 # Generate a secret key
-ynh_replace_string "__SECRETKEY__" "$(ynh_string_random)" "$final_path/searx/settings.yml"
+ynh_replace_string "secret_key : \"ultrasecretkey\"" "secret_key : \"$(ynh_string_random)\"" "$final_path/searx/settings.yml"
 
 # Modify the base_url parameter, if it's installed in a subpath
 if [ "$path_url" != "/" ]
 then
-	ynh_replace_string "__BASEURL__" "https://${domain}${path_url}/" "$final_path/searx/settings.yml"
+  ynh_replace_string "base_url : False" "base_url : https://${domain}${path_url}/" "$final_path/searx/settings.yml"
 else
-	ynh_replace_string "__BASEURL__" "False" "$final_path/searx/settings.yml"
+  ynh_replace_string "base_url : False" "base_url : False" "$final_path/searx/settings.yml"
 fi
 ynh_store_file_checksum "$final_path/searx/settings.yml"
 
