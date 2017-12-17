@@ -2,20 +2,20 @@
 	"name": "Searx",
 	"id": "searx",
 	"packaging_format": 1,
-	"requirements": {
-		"yunohost": ">= 2.4"
-	},
 	"description": {
 		"en": "A privacy-respecting, hackable metasearch engine",
 		"fr": "Un méta-moteur de recherche respectueux de la vie privée et bidouillable", 
 		"de": "Eine Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist."
 	},
-	"version": "0.11",
+	"version": "0.13.1-1",
 	"url": "https://asciimoo.github.io/searx/",
 	"license": "AGPLv3",
 	"maintainer": {
 		"name": "opi",
 		"email": "opi@zeropi.net"
+	},
+	"requirements": {
+        "yunohost": ">= 2.7.2"
 	},
 	"multi_instance": false,
 	"services": [

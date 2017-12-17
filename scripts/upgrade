@@ -6,7 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source _common.sh
+# source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -24,15 +24,17 @@ final_path=$(ynh_app_setting_get $app final_path)
 # FIX OLD THINGS
 #=================================================
 
+# Fix is_public as a boolean value
 if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set $app is_public 1	# Fixe is_public en booléen
+	ynh_app_setting_set $app is_public 1
 	is_public=1
 elif [ "$is_public" = "No" ]; then
 	ynh_app_setting_set $app is_public 0
 	is_public=0
 fi
 
-if [ -z $final_path ]; then	# Si final_path n'est pas renseigné dans app setting
+# If final_path doesn't exist, create it
+if [ -z $final_path ]; then
 	final_path="/opt/yunohost/$app"
 	ynh_app_setting_set $app final_path $final_path
 fi
@@ -41,17 +43,18 @@ fi
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 
-BACKUP_BEFORE_UPGRADE	# Backup the current version of the app
+ynh_backup_before_upgrade	# Backup the current version of the app
 ynh_clean_setup () {
-	BACKUP_FAIL_UPGRADE	# restore it if the upgrade fails
+	ynh_restore_upgradebackup	# restore it if the upgrade fails
 }
-ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
+ynh_abort_if_errors	# Exit if an error occurs during the execution of the script
 
 #=================================================
 # CHECK THE PATH
 #=================================================
 
-path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -59,17 +62,21 @@ path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-ynh_setup_source "$final_path"	# Télécharge la source, décompresse et copie dans $final_path
+# Verify the checksum and backup the file if it's different
+ynh_backup_if_checksum_is_different "$final_path/searx/settings.yml"
+
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
-ynh_nginx_config
+ynh_add_nginx_config
 if [ "$path_url" = "/" ]
 then
 	ynh_replace_string "__PATH_NO_ROOT__" "" /etc/nginx/conf.d/$domain.d/$app.conf
-	sudo sed --in-place '/#noroot*/d' /etc/nginx/conf.d/$domain.d/$app.conf
+	sed --in-place '/#noroot*/d' /etc/nginx/conf.d/$domain.d/$app.conf
 else
 	ynh_replace_string "#noroot" "" /etc/nginx/conf.d/$domain.d/$app.conf
 	ynh_replace_string "__PATH_NO_ROOT__" "$path_url" /etc/nginx/conf.d/$domain.d/$app.conf
@@ -80,7 +87,8 @@ ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 # CREATE DEDICATED USER
 #=================================================
 
-ynh_system_user_create $app	# Create the dedicated user, if not exist
+# Create a system user
+ynh_system_user_create $app
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -88,27 +96,26 @@ ynh_system_user_create $app	# Create the dedicated user, if not exist
 # UPGRADE SEARX IN ITS VIRTUALENV
 #=================================================
 
-sudo virtualenv --system-site-packages "$final_path"
-sudo bash -c "source $final_path/bin/activate && pip install --requirement $final_path/requirements-ynh.txt --upgrade"
+rm -r $final_path/lib/python2.7/site-packages/{pip,setuptools} $final_path/lib/python2.7/site-packages/setuptools-* $final_path/lib/python2.7/site-packages/pip-*
+virtualenv --system-site-packages "$final_path"
+bash -c "source $final_path/bin/activate && pip install -U pip setuptools && pip install --requirement $final_path/requirements-ynh.txt --upgrade"
 
 #=================================================
 # CONFIGURE SEARX
 #=================================================
 
-# Créé un backup du fichier de config si il a été modifié.
-ynh_backup_if_checksum_is_different "$final_path/searx/settings.yml"
-
-sudo cp ../conf/settings.yml "$final_path/searx/"
+# Change instance name
+ynh_replace_string "instance_name : \"searx\"" "instance_name : \"YunoSearx\"" "$final_path/searx/settings.yml"
 
 # Generate a secret key
-ynh_replace_string "__SECRETKEY__" "$(ynh_string_random)" "$final_path/searx/settings.yml"
+ynh_replace_string "secret_key : \"ultrasecretkey\"" "secret_key : \"$(ynh_string_random)\"" "$final_path/searx/settings.yml"
 
 # Modify the base_url parameter, if it's installed in a subpath
 if [ "$path_url" != "/" ]
 then
-	ynh_replace_string "__BASEURL__" "https://${domain}${path_url}/" "$final_path/searx/settings.yml"
+  ynh_replace_string "base_url : False" "base_url : https://${domain}${path_url}/" "$final_path/searx/settings.yml"
 else
-	ynh_replace_string "__BASEURL__" "False" "$final_path/searx/settings.yml"
+  ynh_replace_string "base_url : False" "base_url : False" "$final_path/searx/settings.yml"
 fi
 ynh_store_file_checksum "$final_path/searx/settings.yml"
 
@@ -118,21 +125,22 @@ ynh_store_file_checksum "$final_path/searx/settings.yml"
 # SECURING FILES AND DIRECTORIES
 #=================================================
 
-sudo chown $app: --recursive "$final_path"
+chown $app: --recursive "$final_path"
 
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
 #=================================================
 
-sudo cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
+cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
 ynh_replace_string "__APP__" "$app" /etc/uwsgi/apps-available/$app.ini
 ynh_replace_string "__FINALPATH__" "$final_path" /etc/uwsgi/apps-available/$app.ini
-sudo systemctl restart uwsgi
+systemctl restart uwsgi
 
 #=================================================
 # SETUP SSOWAT
 #=================================================
 
+# Make app public if necessary
 if [ $is_public -eq 1 ]
 then
 	ynh_app_setting_set $app skipped_uris "/"
@@ -142,4 +150,4 @@ fi
 # RELOAD NGINX
 #=================================================
 
-sudo systemctl reload nginx
+systemctl reload nginx
