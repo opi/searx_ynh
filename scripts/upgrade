@@ -97,7 +97,6 @@ ynh_system_user_create $app
 #=================================================
 
 rm -r $final_path/lib/python2.7/site-packages/setuptools $final_path/lib/python2.7/site-packages/setuptools-*
-rm -rf $final_path/lib/python2.7/site-packages/pip $final_path/lib/python2.7/site-packages/pip-*
 virtualenv --system-site-packages "$final_path"
 bash -c "source $final_path/bin/activate && pip install -U setuptools && pip install --requirement $final_path/requirements-ynh.txt --upgrade"
 
