@@ -5,7 +5,7 @@
 - *And how you fix that*
 
 ## PR Status
-- [ ] Work finished.
+- [ ] Code finished.
 - [ ] Tested with Package_check.
 - [ ] Fix or enhancement tested.
 - [ ] Upgrade from last version tested.
