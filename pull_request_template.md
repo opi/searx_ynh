@@ -5,9 +5,11 @@
 - *And how you fix that*
 
 ## PR Status
-*Obviously, you should really check these affirmations*  
-Work finished. Package_check, basic tests and upgrade from last version OK.  
-Could be reviewed and tested.
+- [ ] Work finished.
+- [ ] Tested with Package_check.
+- [ ] Fix or enhancement tested.
+- [ ] Upgrade from last version tested.
+- [ ] Can be reviewed and tested.
 
 ## Validation
 ---
