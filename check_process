@@ -34,5 +34,5 @@ Email=
 Notification=none
 ;;; Upgrade options
 	; commit=0bc4b329402773653e4a70adf6a397c5cefea947
-		name=Fix install and upgrade
+		name=Fix dependances for stretch, from old_version_for_CI_1 branch
 		manifest_arg=domain=DOMAIN&path=PATH&is_public=1&
