@@ -3,23 +3,18 @@
 #=================================================
 # GENERIC STARTING
 #=================================================
-# MANAGE FAILURE OF THE SCRIPT
-#=================================================
-
-# Exit on command errors and treat unset variables as an error
-set -eu
-
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# if [ ! -e _common.sh ]; then
-# 	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
-# 	cp ../settings/scripts/_common.sh ./_common.sh
-# 	chmod a+rx _common.sh
-# fi
-# source _common.sh
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
@@ -59,7 +54,7 @@ ynh_restore_file "$final_path"
 # INSTALL DEPENDENCIES
 #=================================================
 
-ynh_install_app_dependencies libxslt-dev virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
+ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
 
 #=================================================
 # RECREATE OF THE DEDICATED USER
@@ -86,8 +81,14 @@ ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
 #=================================================
 # GENERIC FINALISATION
 #=================================================
-# RELOAD NGINX AND UWSGI
+# RELOAD NGINX
 #=================================================
 
-systemctl restart uwsgi
 systemctl reload nginx
+
+#=================================================
+# CHECK SEARX STARTING
+#=================================================
+
+# Wait for searx to be fully started
+ynh_check_starting "spawned uWSGI master process" "/var/log/uwsgi/app/$app.log" "300" "uwsgi"
