@@ -6,7 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# source _common.sh
+source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -16,6 +16,7 @@ source /usr/share/yunohost/helpers
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get $app final_path)
 
 #=================================================
 # STANDARD REMOVE
@@ -24,9 +25,10 @@ domain=$(ynh_app_setting_get $app domain)
 #=================================================
 
 # Remove the uwsgi configuration
-systemctl stop uwsgi
-if [ -h "/etc/uwsgi/apps-enabled/$app.ini" ]; then
-	echo "Delete uwsgi config"
+ynh_systemd_action --service_name=uwsgi --action=stop
+if [ -h "/etc/uwsgi/apps-enabled/$app.ini" ]
+then
+	ynh_print_info "Delete uwsgi config for $app"
 	ynh_secure_remove "/etc/uwsgi/apps-enabled/$app.ini"
 fi
 ynh_secure_remove "/etc/uwsgi/apps-available/$app.ini"
@@ -41,7 +43,7 @@ ynh_remove_app_dependencies
 # REMOVE THE MAIN DIR OF THE APP
 #=================================================
 
-ynh_secure_remove "/opt/yunohost/$app"
+ynh_secure_remove "$final_path"
 
 #=================================================
 # REMOVE THE NGINX CONFIGURATION
@@ -51,23 +53,23 @@ ynh_secure_remove "/opt/yunohost/$app"
 ynh_remove_nginx_config
 
 #=================================================
-# DISABLE SERVICE IN ADMIN PANEL
+# REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
 if [ -e /etc/init.d/uwsgi ]
 then
 	# Redémarre le service uwsgi si il n'est pas désinstallé.
-	systemctl start uwsgi
+	ynh_systemd_action --service_name=uwsgi --action=start
 else
-	if yunohost service status | grep -q uwsgi	# Test l'existence du service dans Yunohost
+	if yunohost service status | grep -q uwsgi
 	then
-		echo "Remove uwsgi service"
+		ynh_print_info "Remove uwsgi service"
 		yunohost service remove uwsgi
 	fi
 fi
 
 #=================================================
-# GENERIC FINALISATION
+# GENERIC FINALIZATION
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
