@@ -32,6 +32,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
 #=================================================
+ynh_print_info "Validating installation parameters..."
 
 final_path="/opt/yunohost/$app"
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
@@ -45,6 +46,7 @@ ynh_webpath_register $app $domain $path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
@@ -55,12 +57,14 @@ ynh_app_setting_set $app is_public $is_public
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
+ynh_print_info "Installing dependencies..."
 
 ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Configuring nginx web server..."
 
 path_no_root=${path_url%/}
 # Create a dedicated nginx config
@@ -69,6 +73,7 @@ ynh_add_nginx_config "path_no_root"
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
+ynh_print_info "Configuring system user..."
 
 # Create a system user
 ynh_system_user_create $app
@@ -76,6 +81,7 @@ ynh_system_user_create $app
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_print_info "Setting up source files..."
 
 ynh_app_setting_set $app final_path $final_path
 # Download, check integrity, uncompress and patch the source from app.src
@@ -86,6 +92,7 @@ ynh_setup_source "$final_path"
 #=================================================
 # INSTALL SEARX IN A VIRTUALENV
 #=================================================
+ynh_print_info "Installing Searx..."
 
 virtualenv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
@@ -95,6 +102,7 @@ pip install --requirement $final_path/requirements-ynh.txt
 #=================================================
 # CONFIGURE SEARX
 #=================================================
+ynh_print_info "Configuring Searx..."
 
 # Change instance name
 ynh_replace_string "instance_name : \"searx\"" "instance_name : \"YunoSearx\"" "$final_path/searx/settings.yml"
@@ -120,6 +128,7 @@ chown $app: --recursive "$final_path"
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
 #=================================================
+ynh_print_info "Configuring uWSGI for Searx..."
 
 cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
 ynh_replace_string "__APP__" "$app" /etc/uwsgi/apps-available/$app.ini
@@ -136,6 +145,7 @@ yunohost service add uwsgi --log "/var/log/uwsgi/app/$app.log"
 #=================================================
 # CHECK SEARX STARTING
 #=================================================
+ynh_print_info "Starting Searx..."
 
 # Wait for searx to be fully started
 ynh_systemd_action --service_name=uwsgi --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/app/$app.log"
@@ -145,6 +155,7 @@ ynh_systemd_action --service_name=uwsgi --action=restart --line_match="spawned u
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Configuring SSOwat..."
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
@@ -155,5 +166,12 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
 systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Installation of $app completed"

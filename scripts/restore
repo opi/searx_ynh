@@ -32,6 +32,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
+ynh_print_info "Validating restoration parameters..."
 
 ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
@@ -49,6 +50,7 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 # RESTORE OF THE MAIN DIR OF THE APP
 #=================================================
+ynh_print_info "Restoring the app main directory..."
 
 mkdir -p "$(dirname "$final_path")"
 ynh_restore_file "$final_path"
@@ -56,12 +58,14 @@ ynh_restore_file "$final_path"
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
+ynh_print_info "Reinstalling dependencies..."
 
 ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
 
 #=================================================
 # RECREATE OF THE DEDICATED USER
 #=================================================
+ynh_print_info "Recreating the dedicated system user..."
 
 # Create the dedicated user (if not existing)
 ynh_system_user_create $app
@@ -86,12 +90,20 @@ ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
 systemctl reload nginx
 
 #=================================================
 # CHECK SEARX STARTING
 #=================================================
+ynh_print_info "Starting Searx..."
 
 # Wait for searx to be fully started
 ynh_systemd_action --service_name=uwsgi --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/app/$app.log"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Restoration completed for $app"
