@@ -59,7 +59,7 @@ ynh_app_setting_set $app is_public $is_public
 #=================================================
 ynh_print_info "Installing dependencies..."
 
-ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # NGINX CONFIGURATION
