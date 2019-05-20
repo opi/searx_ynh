@@ -60,7 +60,7 @@ ynh_restore_file "$final_path"
 #=================================================
 ynh_print_info "Reinstalling dependencies..."
 
-ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # RECREATE OF THE DEDICATED USER

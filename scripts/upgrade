@@ -69,7 +69,7 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 ynh_print_info "Upgrading dependencies..."
 
-ynh_install_app_dependencies git build-essential libxslt-dev python-dev python-virtualenv virtualenv python-babel zlib1g-dev libffi-dev libssl-dev python-lxml uwsgi uwsgi-plugin-python
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
