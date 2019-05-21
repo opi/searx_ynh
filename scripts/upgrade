@@ -83,8 +83,8 @@ ynh_install_app_dependencies $pkg_dependencies
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-    # Verify the checksum and backup the file if it's different
-    ynh_backup_if_checksum_is_different --file="$final_path/searx/settings.yml"
+	# Verify the checksum and backup the file if it's different
+	ynh_backup_if_checksum_is_different --file="$final_path/searx/settings.yml"
 
 	ynh_script_progression --message="Upgrading source files..." --weight=3
 
