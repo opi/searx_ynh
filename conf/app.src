@@ -1,6 +1,6 @@
-SOURCE_URL=https://github.com/asciimoo/searx/archive/v0.14.0.tar.gz
-SOURCE_SUM=002c7f9ceeafc5ada2f1fd30b5d5f6c9
-SOURCE_SUM_PRG=md5sum
+SOURCE_URL=https://github.com/asciimoo/searx/archive/v0.15.0.tar.gz
+SOURCE_SUM=9d605ca08adc91fab27b4fd5311c9585620a9152e9f3e8b4f41f6ec7231af3efe3effdd3f8c0e6d08898c2116ef429455ec8525dad35e17329bd1e509828ba4b
+SOURCE_SUM_PRG=sha512sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=
+SOURCE_FILENAME=searx.tar.gz
