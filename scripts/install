@@ -89,7 +89,7 @@ ynh_setup_source --dest_dir="$final_path"
 #=================================================
 # INSTALL SEARX IN A VIRTUALENV
 #=================================================
-ynh_script_progression --message="Installing Searx..."1
+ynh_script_progression --message="Installing Searx..."
 
 virtualenv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
