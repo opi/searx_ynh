@@ -85,6 +85,13 @@ ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 ynh_setup_source --dest_dir="$final_path"
 
 #=================================================
+# PATCH VERSION 0.16.0
+#=================================================
+
+# Apply fix https://github.com/asciimoo/searx/pull/1831 on the current 0.16.0 release.
+ynh_replace_string --match_string="werkzeug.contrib.fixers" --replace_string="werkzeug.middleware.proxy_fix" --target_file="$final_path/searx/webapp.py"
+
+#=================================================
 # SPECIFIC SETUP
 #=================================================
 # INSTALL SEARX IN A VIRTUALENV
