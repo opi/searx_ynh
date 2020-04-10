@@ -98,10 +98,10 @@ ynh_replace_string --match_string="werkzeug.contrib.fixers" --replace_string="we
 #=================================================
 ynh_script_progression --message="Installing Searx..."
 
-virtualenv --system-site-packages "$final_path"
+python3 -m venv "$final_path"
 set +u; source $final_path/bin/activate; set -u
-pip install -U setuptools
-pip install --requirement $final_path/requirements-ynh.txt
+pip3 install -U pip setuptools
+pip3 install --requirement $final_path/requirements-ynh.txt
 
 #=================================================
 # CONFIGURE SEARX

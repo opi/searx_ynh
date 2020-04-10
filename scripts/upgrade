@@ -123,11 +123,12 @@ ynh_system_user_create --username=$app
 #=================================================
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
-rm -r $final_path/lib/python2.7/site-packages/setuptools $final_path/lib/python2.7/site-packages/setuptools-*
-virtualenv --system-site-packages "$final_path"
+# Clean venv if it still on python2
+test -e $final_path/bin/python3 || ynh_secure_remove --file=$final_path
+python3 -m venv "$final_path"
 set +u; source $final_path/bin/activate; set -u
-pip install -U setuptools
-pip install --requirement $final_path/requirements-ynh.txt --upgrade
+pip3 install -U pip setuptools
+pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 
 #=================================================
 # CONFIGURE SEARX
