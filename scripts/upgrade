@@ -124,10 +124,16 @@ ynh_system_user_create --username=$app
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
 # Clean venv if it still on python2
-test -e $final_path/bin/python3 || ynh_secure_remove --file=$final_path
+test -e $final_path/bin/python3 || (
+    ynh_secure_remove --file=$final_path/lib/python*
+    ynh_secure_remove --file=$final_path/lib64/python*
+    ynh_secure_remove --file=$final_path/share/python-wheels
+)
+ynh_secure_remove $final_path/lib/python2.7/site-packages/setuptools
+ynh_secure_remove $final_path/lib/python2.7/site-packages/setuptools-*
 python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
-pip3 install -U pip setuptools
+pip3 install -U setuptools
 pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 
 #=================================================
