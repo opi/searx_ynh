@@ -83,10 +83,9 @@ chown $app: --recursive "$final_path"
 #=================================================
 
 ynh_restore_file --origin_path="/etc/uwsgi/apps-available/$app.ini"
-ynh_restore_file --origin_path "/etc/systemd/system/uwsgi-app@.service"
 ynh_restore_file --origin_path "/var/log/uwsgi/$app"
 chown $app:root /var/log/uwsgi/$app
-systemctl daemon-reload
+ynh_check_global_uwsgi_config
 systemctl enable "uwsgi-app@$app.service"
 
 #=================================================
