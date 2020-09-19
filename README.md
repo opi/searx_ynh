@@ -30,7 +30,7 @@ Searx is a privacy-respecting, hackable metasearch engine.
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/searx/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/searx/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/searx/)
 
 ## Limitations
