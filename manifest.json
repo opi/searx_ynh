@@ -8,7 +8,7 @@
 		"de": "Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist."
 	},
 	"version": "0.17.0~ynh1",
-	"url": "https://asciimoo.github.io/searx/",
+	"url": "https://searx.github.io/searx/",
 	"license": "AGPL-3.0-or-later",
 	"maintainer": {
 		"name": "opi",
