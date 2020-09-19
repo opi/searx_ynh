@@ -91,10 +91,10 @@ ynh_setup_source --dest_dir="$final_path"
 #=================================================
 ynh_script_progression --message="Installing Searx..."
 
-virtualenv --system-site-packages "$final_path"
+python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
-pip install -U setuptools
-pip install --requirement $final_path/requirements-ynh.txt
+pip3 install -U setuptools
+pip3 install --requirement $final_path/requirements-ynh.txt
 
 #=================================================
 # CONFIGURE SEARX
@@ -123,10 +123,7 @@ chown -R $app: "$final_path"
 #=================================================
 ynh_script_progression --message="Configuring uWSGI for Searx..."
 
-cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
-ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file=/etc/uwsgi/apps-available/$app.ini
-ynh_replace_string --match_string="__FINALPATH__" --replace_string="$final_path" --target_file=/etc/uwsgi/apps-available/$app.ini
-ln -s /etc/uwsgi/apps-available/$app.ini /etc/uwsgi/apps-enabled/$app.ini
+ynh_add_uwsgi_service
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
@@ -141,7 +138,7 @@ yunohost service add uwsgi --log "/var/log/uwsgi/app/$app.log"
 ynh_script_progression --message="Starting Searx..." --weight=4
 
 # Wait for searx to be fully started
-ynh_systemd_action --service_name=uwsgi --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/app/$app.log"
+ynh_systemd_action --service_name=uwsgi-app@$app.service --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # GENERIC FINALISATION

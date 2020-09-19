@@ -27,13 +27,8 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 ynh_script_progression --message="Stopping and removing the systemd service..."
 
 # Remove the uwsgi configuration
-ynh_systemd_action --service_name=uwsgi --action=stop
-if [ -h "/etc/uwsgi/apps-enabled/$app.ini" ]
-then
-	ynh_print_info --message="Delete uwsgi config for $app"
-	ynh_secure_remove --file="/etc/uwsgi/apps-enabled/$app.ini"
-fi
-ynh_secure_remove --file="/etc/uwsgi/apps-available/$app.ini"
+ynh_systemd_action --service_name "uwsgi-app@$app.service" --action stop
+ynh_remove_uwsgi_service
 
 #=================================================
 # REMOVE DEPENDENCIES

@@ -8,6 +8,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source _ynh_secure_remove.sh
 
 #=================================================
 # LOAD SETTINGS
@@ -123,11 +124,19 @@ ynh_system_user_create --username=$app
 #=================================================
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
-rm -r $final_path/lib/python2.7/site-packages/setuptools $final_path/lib/python2.7/site-packages/setuptools-*
-virtualenv --system-site-packages "$final_path"
+# Clean venv if it still on python2
+if [ ! -e $final_path/bin/python3 ]
+then
+    ynh_secure_remove --file=$final_path/lib/ --regex='python[^/.]*'
+    ynh_secure_remove --file=$final_path/lib64/ --regex='python[^/.]*'
+    ynh_secure_remove --file=$final_path/share/python-wheels
+fi
+ynh_secure_remove --file=$final_path/lib/python3/site-packages/setuptools
+ynh_secure_remove --file=$final_path/lib/python3/site-packages/ --regex='setuptools-[^/.]*'
+python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
-pip install -U setuptools
-pip install --requirement $final_path/requirements-ynh.txt --upgrade
+pip3 install -U setuptools
+pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 
 #=================================================
 # CONFIGURE SEARX
@@ -158,9 +167,10 @@ chown $app: --recursive "$final_path"
 #=================================================
 ynh_script_progression --message="Reconfiguring uWSGI for Searx..."
 
-cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
-ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file=/etc/uwsgi/apps-available/$app.ini
-ynh_replace_string --match_string="__FINALPATH__" --replace_string="$final_path" --target_file=/etc/uwsgi/apps-available/$app.ini
+# Clean old files
+ynh_secure_remove --file="/etc/uwsgi/apps-enabled/$app.ini"
+ynh_secure_remove --file="/etc/uwsgi/apps-available/$app.ini"
+ynh_add_uwsgi_service
 
 #=================================================
 # CHECK SEARX STARTING
@@ -168,7 +178,7 @@ ynh_replace_string --match_string="__FINALPATH__" --replace_string="$final_path"
 ynh_script_progression --message="Restarting Searx..." --weight=3
 
 # Wait for searx to be fully started
-ynh_systemd_action --service_name=uwsgi --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/app/$app.log"
+ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # SETUP SSOWAT
