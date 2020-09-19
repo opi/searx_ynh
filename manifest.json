@@ -53,6 +53,11 @@
 					"fr": "Est-ce un site public ?",
 					"de": "Ist es eine öffentliche Applikation ?"
 				},
+                "help": {
+                    "en": "If enabled, Searx will be accessible by people who do not have an account. This can be changed later via the webadmin.",
+                    "fr": "Si cette case est cochée, Searx sera accessible aux personnes n’ayant pas de compte. Vous pourrez changer ceci plus tard via la webadmin.",
+                    "de": "Wenn aktiviert, ist Searx für Personen zugänglich, die kein Konto haben. Dies kann später über den Webadmin geändert werden"
+                },
 				"default": true
 			}
 		]
