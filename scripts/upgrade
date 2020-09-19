@@ -118,7 +118,7 @@ ynh_system_user_create --username=$app
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
 # Clean venv if it still on python2
-if [ ! -e $final_path/bin/python3.7 ]
+if [ ! -e $final_path/bin/python2.* ]
 then
     ynh_secure_remove --file=$final_path/lib/ --regex='python[^/.]*'
     ynh_secure_remove --file=$final_path/lib64/ --regex='python[^/.]*'
