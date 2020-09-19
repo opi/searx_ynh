@@ -50,7 +50,7 @@ fi
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping searx..." --weight=10
+ynh_script_progression --message="Stopping Searx..." --weight=10
 
 ynh_systemd_action --service_name=uwsgi --action=stop
 
@@ -114,4 +114,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Change of URL completed for $app" --last
+ynh_script_progression --message="Change of URL completed for Searx" --last
