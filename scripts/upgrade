@@ -124,8 +124,8 @@ then
     ynh_secure_remove --file=$final_path/lib64/ --regex='python[^/.]*'
     ynh_secure_remove --file=$final_path/share/python-wheels
 fi
-ynh_secure_remove --file=$final_path/lib/python3/site-packages/setuptools
-ynh_secure_remove --file=$final_path/lib/python3/site-packages/ --regex='setuptools-[^/.]*'
+ynh_secure_remove --file=$final_path/lib/python3.7/site-packages/setuptools
+ynh_secure_remove --file=$final_path/lib/python3.7/site-packages/ --regex='setuptools-[^/.]*'
 
 python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
