@@ -89,6 +89,13 @@ ynh_check_global_uwsgi_config
 systemctl enable "uwsgi-app@$app.service"
 
 #=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+# Ajoute le service au monitoring de YunoHost.
+yunohost service add uwsgi --log "/var/log/uwsgi/app/$app.log"
+
+#=================================================
 # GENERIC FINALISATION
 #=================================================
 # RELOAD NGINX
