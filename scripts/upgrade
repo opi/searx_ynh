@@ -167,7 +167,7 @@ ynh_secure_remove --file="/etc/uwsgi/apps-available/$app.ini"
 ynh_add_uwsgi_service
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE WITH YUNOHOST
 #=================================================
 
 # Ajoute le service au monitoring de YunoHost.
