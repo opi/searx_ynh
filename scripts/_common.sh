@@ -123,8 +123,8 @@ ynh_add_uwsgi_service () {
 ynh_remove_uwsgi_service () {
     local finaluwsgiini="/etc/uwsgi/apps-available/$app.ini"
     if [ -e "$finaluwsgiini" ]; then
-        systemctl disable "uwsgi-app@$app.service"
         yunohost service remove "uwsgi-app@$app"
+        systemctl disable "uwsgi-app@$app.service"
 
         ynh_secure_remove --file="$finaluwsgiini"
         ynh_secure_remove --file="/var/log/uwsgi/$app"
