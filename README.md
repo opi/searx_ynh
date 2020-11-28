@@ -1,6 +1,6 @@
 # Searx for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx)  
+[![Integration level](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)  
 [![Install Searx with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=searx)
 
 > *This package allow you to install Searx quickly and simply on a YunoHost server.  
