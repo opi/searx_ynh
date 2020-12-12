@@ -10,7 +10,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 
 Searx is a privacy-respecting, hackable metasearch engine.
 
-**Shipped version:** 0.16.0
+**Shipped version:** 0.17.0
 
 ## Screenshots
 
@@ -22,7 +22,7 @@ Searx is a privacy-respecting, hackable metasearch engine.
 
 ## Documentation
 
- * Official documentation: https://github.com/asciimoo/searx/wiki
+ * Official documentation: https://github.com/searx/searx/wiki
 
 ## YunoHost specific features
 
@@ -30,29 +30,26 @@ Searx is a privacy-respecting, hackable metasearch engine.
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/searx/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/searx/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/searx/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/searx%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/searx/)
 
 ## Limitations
 
 ## Additional information
 
-- [Search syntax](https://asciimoo.github.io/searx/user/search_syntax.html)
+- [Search syntax](https://searx.github.io/searx/user/search_syntax.html)
 
 ## Links
 
  * Report a bug: https://github.com/YunoHost-Apps/searx_ynh/issues
- * Searx website: https://asciimoo.github.io/searx/
- * Searx repository: https://github.com/asciimoo/searx
+ * Searx website: https://searx.github.io/searx/
+ * Searx repository: https://github.com/searx/searx
  * YunoHost website: https://yunohost.org/
 
 ---
 
-Developers info
-----------------
+## Developers info
 
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/searx_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.

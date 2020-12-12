@@ -8,6 +8,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source _ynh_secure_remove.sh
 
 #=================================================
 # LOAD SETTINGS
@@ -62,13 +63,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # UPGRADE DEPENDENCIES
@@ -90,22 +84,15 @@ then
 
 	# Download, check integrity, uncompress and patch the source from app.src
 	ynh_setup_source --dest_dir="$final_path"
-
-    #=================================================
-    # PATCH VERSION 0.16.0
-    #=================================================
-
-    # Apply fix https://github.com/asciimoo/searx/pull/1831 on the current 0.16.0 release.
-    ynh_replace_string --match_string="werkzeug.contrib.fixers" --replace_string="werkzeug.middleware.proxy_fix" --target_file="$final_path/searx/webapp.py"
 fi
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading nginx web server configuration..."
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
 
 path_no_root=${path_url%/}
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config "path_no_root"
 
 #=================================================
@@ -123,16 +110,21 @@ ynh_system_user_create --username=$app
 #=================================================
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
-ynh_secure_remove $final_path/lib/python2.7/site-packages/setuptools
-for FILE in $final_path/lib/python2.7/site-packages/setuptools-*
-do
-    ynh_secure_remove $FILE
-done
+# Clean venv if it still on python2
+if [ ! -e $final_path/bin/python3 ]
+then
+    ynh_secure_remove --file=$final_path/lib/ --regex='python[^/.]*'
+    ynh_secure_remove --file=$final_path/lib64/ --regex='python[^/.]*'
+    ynh_secure_remove --file=$final_path/share/python-wheels
+fi
+ynh_secure_remove --file=$final_path/lib/python3/site-packages/setuptools
+ynh_secure_remove --file=$final_path/lib/python3/site-packages/ --regex='setuptools-[^/.]*'
 
-virtualenv --system-site-packages "$final_path"
+python3 -m venv --system-site-packages "$final_path"
+
 set +u; source $final_path/bin/activate; set -u
-pip install -U setuptools
-pip install --requirement $final_path/requirements-ynh.txt --upgrade
+pip3 install -U setuptools
+pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 
 #=================================================
 # CONFIGURE SEARX
@@ -156,16 +148,24 @@ ynh_store_file_checksum --file="$final_path/searx/settings.yml"
 # SECURING FILES AND DIRECTORIES
 #=================================================
 
-chown $app: --recursive "$final_path"
+chown -R $app: "$final_path"
 
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
 #=================================================
 ynh_script_progression --message="Reconfiguring uWSGI for Searx..."
 
-cp ../conf/searx.ini /etc/uwsgi/apps-available/$app.ini
-ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file=/etc/uwsgi/apps-available/$app.ini
-ynh_replace_string --match_string="__FINALPATH__" --replace_string="$final_path" --target_file=/etc/uwsgi/apps-available/$app.ini
+# Clean old files
+ynh_secure_remove --file="/etc/uwsgi/apps-enabled/$app.ini"
+ynh_secure_remove --file="/etc/uwsgi/apps-available/$app.ini"
+ynh_add_uwsgi_service
+
+#=================================================
+# INTEGRATE SERVICE WITH YUNOHOST
+#=================================================
+
+# Ajoute le service au monitoring de YunoHost.
+yunohost service add uwsgi --log "/var/log/uwsgi/app/$app.log"
 
 #=================================================
 # CHECK SEARX STARTING
@@ -173,23 +173,12 @@ ynh_replace_string --match_string="__FINALPATH__" --replace_string="$final_path"
 ynh_script_progression --message="Restarting Searx..." --weight=3
 
 # Wait for searx to be fully started
-ynh_systemd_action --service_name=uwsgi --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/app/$app.log"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Upgrading SSOwat configuration..."
-
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	ynh_app_setting_set --app=$app --key=skipped_uris --value="/"
-fi
+ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -197,4 +186,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression --message="Upgrade of Searx completed" --last
