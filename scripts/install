@@ -32,7 +32,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..."
+ynh_script_progression --message="Validating installation parameters..." --weight=1
 
 final_path="/opt/yunohost/$app"
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
@@ -61,7 +61,7 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring NGINX web server..."
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 
 path_no_root=${path_url%/}
 # Create a dedicated NGINX config
@@ -89,7 +89,7 @@ ynh_setup_source --dest_dir="$final_path"
 #=================================================
 # INSTALL SEARX IN A VIRTUALENV
 #=================================================
-ynh_script_progression --message="Installing Searx..."
+ynh_script_progression --message="Installing Searx..." --weight=2
 
 python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
@@ -121,7 +121,7 @@ chown -R $app: "$final_path"
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
 #=================================================
-ynh_script_progression --message="Configuring uWSGI for Searx..."
+ynh_script_progression --message="Configuring uWSGI for Searx..." --weight=2
 
 ynh_add_uwsgi_service
 
@@ -145,7 +145,7 @@ ynh_systemd_action --service_name=uwsgi-app@$app.service --action=start --line_m
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring SSOwat..."
+ynh_script_progression --message="Configuring SSOwat..." --weight=2
 
 # Make app public if necessary or protect it
 if [ $is_public -eq 1 ]
@@ -156,7 +156,7 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
 
