@@ -24,7 +24,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..."
+ynh_script_progression --message="Loading installation settings..." --weight=1
 
 # Needed for helper "ynh_add_nginx_config"
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
@@ -90,7 +90,7 @@ fi
 #=================================================
 # RECONFIGURING SEARX
 #=================================================
-ynh_script_progression --message="Reconfiguring Searx..."
+ynh_script_progression --message="Reconfiguring Searx..." --weight=2
 
 ynh_replace_string --match_string="base_url : https://${old_domain}${old_path%/}/" --replace_string="base_url : https://${new_domain}${new_path%/}/" --target_file="$final_path/searx/settings.yml"
 
@@ -106,7 +106,7 @@ ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
 

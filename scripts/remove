@@ -24,7 +24,7 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 # STOP AND REMOVE SERVICE
 #=================================================
-ynh_script_progression --message="Stopping and removing the systemd service..."
+ynh_script_progression --message="Stopping and removing the systemd service..." --weight=2
 
 # Remove the uwsgi configuration
 ynh_systemd_action --service_name "uwsgi-app@$app.service" --action stop
@@ -40,7 +40,7 @@ ynh_remove_app_dependencies
 #=================================================
 # REMOVE THE MAIN DIR OF THE APP
 #=================================================
-ynh_script_progression --message="Removing app main directory..."
+ynh_script_progression --message="Removing app main directory..." --weight=2
 
 ynh_secure_remove --file="$final_path"
 
@@ -73,7 +73,7 @@ fi
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Removing the dedicated system user..."
+ynh_script_progression --message="Removing the dedicated system user..." --weight=1
 
 # Delete a system user
 ynh_system_user_delete --username=$app

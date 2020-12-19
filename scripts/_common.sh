@@ -111,7 +111,7 @@ ynh_add_uwsgi_service () {
         cp ../conf/uwsgi-app@override.service /etc/systemd/system/uwsgi-app@$app.service.d/override.conf
 
     systemctl daemon-reload
-    systemctl enable "uwsgi-app@$app.service"
+    systemctl enable "uwsgi-app@$app.service" --quiet
 
     # Add as a service
     yunohost service add "uwsgi-app@$app" --log "/var/log/uwsgi/$app/$app.log"
@@ -124,7 +124,7 @@ ynh_remove_uwsgi_service () {
     local finaluwsgiini="/etc/uwsgi/apps-available/$app.ini"
     if [ -e "$finaluwsgiini" ]; then
         yunohost service remove "uwsgi-app@$app"
-        systemctl disable "uwsgi-app@$app.service"
+        systemctl disable "uwsgi-app@$app.service" --quiet
 
         ynh_secure_remove --file="$finaluwsgiini"
         ynh_secure_remove --file="/var/log/uwsgi/$app"

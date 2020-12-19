@@ -8,7 +8,6 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
-source _ynh_secure_remove.sh
 
 #=================================================
 # LOAD SETTINGS
@@ -89,7 +88,7 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..."
+ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
 
 path_no_root=${path_url%/}
 # Create a dedicated NGINX config
@@ -98,7 +97,7 @@ ynh_add_nginx_config "path_no_root"
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
 ynh_system_user_create --username=$app
@@ -153,7 +152,7 @@ chown -R $app: "$final_path"
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
 #=================================================
-ynh_script_progression --message="Reconfiguring uWSGI for Searx..."
+ynh_script_progression --message="Reconfiguring uWSGI for Searx..." --weight=2
 
 # Clean old files
 ynh_secure_remove --file="/etc/uwsgi/apps-enabled/$app.ini"
@@ -178,7 +177,7 @@ ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
 
