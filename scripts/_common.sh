@@ -137,14 +137,14 @@ ynh_remove_uwsgi_service () {
 
 # Remove a file or a directory securely
 #
-# usage: ynh_secure_remove --file=path_to_remove [--regex=regex to append to $file] [--non_recursive] [--dry_run]
+# usage: ynh_regex_secure_remove --file=path_to_remove [--regex=regex to append to $file] [--non_recursive] [--dry_run]
 # | arg: -f, --file - File or directory to remove
 # | arg: -r, --regex - Regex to append to $file to filter the files to remove
 # | arg: -n, --non_recursive - Perform a non recursive rm and a non recursive search with the regex
 # | arg: -d, --dry_run - Do not remove, only list the files to remove
 #
 # Requires YunoHost version 2.6.4 or higher.
-ynh_secure_remove () {
+ynh_regex_secure_remove () {
     # Declare an array to define the options of this helper.
     local legacy_args=frnd
     declare -Ar args_array=( [f]=file= [r]=regex= [n]=non_recursive [d]=dry_run )
@@ -165,7 +165,7 @@ ynh_secure_remove () {
     # Fail if no argument is provided to the helper.
     if [ -z "$file" ]
     then
-        ynh_print_warn --message="ynh_secure_remove called with no argument --file, ignoring."
+        ynh_print_warn --message="ynh_regex_secure_remove called with no argument --file, ignoring."
         return 0
     fi
 
