@@ -160,13 +160,6 @@ ynh_secure_remove --file="/etc/uwsgi/apps-available/$app.ini"
 ynh_add_uwsgi_service
 
 #=================================================
-# INTEGRATE SERVICE WITH YUNOHOST
-#=================================================
-
-# Ajoute le service au monitoring de YunoHost.
-yunohost service add uwsgi --log "/var/log/uwsgi/app/$app.log"
-
-#=================================================
 # CHECK SEARX STARTING
 #=================================================
 ynh_script_progression --message="Restarting Searx..." --weight=3
