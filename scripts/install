@@ -93,7 +93,6 @@ ynh_script_progression --message="Installing Searx..." --weight=2
 
 python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
-#pip3 install -U pip
 pip3 install -U setuptools
 pip3 install --requirement $final_path/requirements-ynh.txt
 
