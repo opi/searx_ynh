@@ -68,6 +68,14 @@ ynh_script_progression --message="Upgrading dependencies..." --weight=7
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
@@ -90,14 +98,6 @@ ynh_script_progression --message="Upgrading NGINX web server configuration..." -
 path_no_root=${path_url%/}
 # Create a dedicated NGINX config
 ynh_add_nginx_config "path_no_root"
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
 
 #=================================================
 # SPECIFIC UPGRADE

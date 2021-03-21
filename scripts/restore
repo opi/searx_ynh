@@ -48,6 +48,14 @@ test ! -d $final_path \
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
+# RECREATE OF THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
+
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$app
+
+#=================================================
 # RESTORE OF THE MAIN DIR OF THE APP
 #=================================================
 ynh_script_progression --message="Restoring the app main directory..." --weight=2
@@ -61,14 +69,6 @@ ynh_restore_file --origin_path="$final_path"
 ynh_script_progression --message="Reinstalling dependencies..." --weight=35
 
 ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
-# RECREATE OF THE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=3
-
-# Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app
 
 #=================================================
 # SPECIFIC RESTORE
