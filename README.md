@@ -9,7 +9,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Searx is a privacy-respecting, hackable metasearch engine.
 
-**Shipped version:** 0.18.0
+**Shipped version:** 1.0.0
 
 ## Screenshot
 
