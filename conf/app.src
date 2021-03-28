@@ -1,5 +1,5 @@
 SOURCE_URL=https://github.com/searx/searx/archive/refs/tags/1.0.0.tar.gz
-SOURCE_SUM=b969e0bb97fb9a41c2c3ce0cc699e4deac6d0ac1db646cf3494ce72b11dde20c
+SOURCE_SUM=4587acc9bd2bf428fe9ac8e4d79d3637dac308a8e5bdeee4f0bae85bfe5c67fe
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
