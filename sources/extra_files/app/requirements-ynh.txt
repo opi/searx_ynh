@@ -1,6 +1,6 @@
 # Have a look to https://github.com/searx/searx/blob/master/requirements.txt
 certifi==2020.12.05
-babel==2.9.0
+babel==2.9.1
 flask-babel==2.0.0
 flask==1.1.2
 idna==2.10
@@ -10,11 +10,12 @@ pygments==2.8.0
 python-dateutil==2.8.1
 pyyaml==5.4.1
 requests[socks]==2.25.1
-cryptography==3.2
+langdetect==1.0.8
+# cryptography==3.2
 
-# Additionnals requirements
-markupsafe>=0.23
-ndg-httpsclient>=0.4.2
-pyasn1>=0.2.3
-pyasn1-modules>=0.0.9
-#cffi>=1.12.1
+# # Additionnals requirements
+# markupsafe>=0.23
+# ndg-httpsclient>=0.4.2
+# pyasn1>=0.2.3
+# pyasn1-modules>=0.0.9
+## cffi>=1.12.1

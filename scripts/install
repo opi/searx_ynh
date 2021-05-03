@@ -92,7 +92,10 @@ ynh_script_progression --message="Installing Searx..." --weight=2
 
 python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
+pip3 install -U pip
 pip3 install -U setuptools
+pip3 install -U wheel
+pip3 install -U pyyaml
 pip3 install --requirement $final_path/requirements-ynh.txt
 
 #=================================================
@@ -100,16 +103,9 @@ pip3 install --requirement $final_path/requirements-ynh.txt
 #=================================================
 ynh_script_progression --message="Configuring Searx..." --weight=2
 
-# Change instance name
-ynh_replace_string --match_string="instance_name : \"searx\"" --replace_string="instance_name : \"YunoSearx\"" --target_file="$final_path/searx/settings.yml"
+secret_key=$(ynh_string_random)
 
-# Generate a secret key
-ynh_replace_string --match_string="secret_key : \"ultrasecretkey\"" --replace_string="secret_key : \"$(ynh_string_random)\"" --target_file="$final_path/searx/settings.yml"
-
-# Modify the base_url parameter
-#ynh_replace_string --match_string="base_url : False" --replace_string="base_url : https://${domain}${path_url%/}/" --target_file="$final_path/searx/settings.yml"
-
-ynh_store_file_checksum --file="$final_path/searx/settings.yml"
+ynh_add_config --template="../conf/settings.yml" --destination="$final_path/searx/settings.yml"
 
 #=================================================
 # SET PERMISSIONS ON SEARX DIRECTORY
