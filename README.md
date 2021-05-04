@@ -4,12 +4,12 @@
 [![Install Searx with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=searx)
 
 > *This package allow you to install Searx quickly and simply on a YunoHost server.  
-If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
+If you don't have YunoHost, please see [here](https://yunohost.org/install) to know how to install and enjoy it.*
 
 ## Overview
 Searx is a privacy-respecting, hackable metasearch engine.
 
-**Shipped version:** 0.18.0
+**Shipped version:** 1.0.0
 
 ## Screenshot
 
@@ -31,8 +31,8 @@ Searx is a privacy-respecting, hackable metasearch engine.
 
 #### Supported architectures
 
-* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/searx/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/searx%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/searx/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/searx.svg)](https://ci-apps.yunohost.org/ci/apps/searx/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/searx.svg)](https://ci-apps-arm.yunohost.org/ci/apps/searx/)
 
 ## Limitations
 
