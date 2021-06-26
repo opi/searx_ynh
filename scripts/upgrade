@@ -81,9 +81,6 @@ ynh_system_user_create --username=$app
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	# Verify the checksum and backup the file if it's different
-	ynh_backup_if_checksum_is_different --file="$final_path/searx/settings.yml"
-
 	ynh_script_progression --message="Upgrading source files..." --weight=3
 
 	# Download, check integrity, uncompress and patch the source from app.src
