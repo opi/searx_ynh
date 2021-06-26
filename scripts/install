@@ -115,7 +115,7 @@ chown -R $app: $final_path
 #=================================================
 ynh_script_progression --message="Configuring uWSGI for Searx..." --weight=2
 
-ynh_add_uwsgi_service 2>/dev/null
+ynh_add_uwsgi_service
 
 #=================================================
 # CHECK SEARX STARTING
@@ -123,7 +123,7 @@ ynh_add_uwsgi_service 2>/dev/null
 ynh_script_progression --message="Starting Searx..." --weight=4
 
 # Wait for Searx to be fully started
-ynh_systemd_action --service_name=uwsgi-app@$app.service --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
+ynh_systemd_action --service_name=uwsgi-app@.service --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # GENERIC FINALISATION
