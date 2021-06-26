@@ -115,7 +115,7 @@ chown -R $app: $final_path
 #=================================================
 ynh_script_progression --message="Configuring uWSGI for Searx..." --weight=2
 
-ynh_add_uwsgi_service
+ynh_add_uwsgi_service 2>/dev/null
 
 #=================================================
 # CHECK SEARX STARTING
