@@ -152,7 +152,7 @@ ynh_add_uwsgi_service
 ynh_script_progression --message="Restarting Searx..." --weight=3
 
 # Wait for searx to be fully started
-ynh_systemd_action --service_name=uwsgi-app@.service --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
+ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # RELOAD NGINX

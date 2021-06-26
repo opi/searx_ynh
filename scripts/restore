@@ -86,7 +86,7 @@ ynh_restore_file --origin_path="/etc/uwsgi/apps-available/$app.ini"
 ynh_restore_file --origin_path "/var/log/uwsgi/$app"
 chown $app:root /var/log/uwsgi/$app
 ynh_check_global_uwsgi_config
-systemctl enable "uwsgi-app@.service" --quiet
+systemctl enable "uwsgi-app@$app.service" --quiet
 
 #=================================================
 # GENERIC FINALISATION
@@ -103,7 +103,7 @@ ynh_systemd_action --service_name=nginx --action=reload
 ynh_script_progression --message="Starting Searx..." --weight=4
 
 # Wait for searx to be fully started
-ynh_systemd_action --service_name=uwsgi-app@.service --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
+ynh_systemd_action --service_name=uwsgi-app@$app.service --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # END OF SCRIPT
