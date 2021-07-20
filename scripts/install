@@ -102,7 +102,7 @@ ynh_script_progression --message="Configuring Searx..." --weight=2
 
 secret_key=$(ynh_string_random)
 
-ynh_add_config --template="../conf/settings.yml" --destination="$final_path/searx/settings.yml" 2>/dev/null
+ynh_add_config --template="../conf/settings.yml" --destination="$final_path/searx/settings.yml"
 
 #=================================================
 # SET PERMISSIONS ON SEARX DIRECTORY
@@ -115,7 +115,7 @@ chown -R $app: $final_path
 #=================================================
 ynh_script_progression --message="Configuring uWSGI for Searx..." --weight=2
 
-ynh_add_uwsgi_service 2>/dev/null
+ynh_add_uwsgi_service
 
 #=================================================
 # CHECK SEARX STARTING
