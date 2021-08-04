@@ -63,7 +63,7 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Configuring system user..." --weight=3
 
 # Create a system user
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -92,11 +92,8 @@ ynh_script_progression --message="Installing Searx..." --weight=2
 
 python3 -m venv --system-site-packages "$final_path"
 set +u; source $final_path/bin/activate; set -u
-pip3 install -U pip
-pip3 install -U setuptools
-pip3 install -U wheel
-pip3 install -U pyyaml
-pip3 install --requirement $final_path/requirements-ynh.txt
+pip3 install -U pip setuptools wheel pyyaml --no-cache-dir
+pip3 install --requirement $final_path/requirements-ynh.txt --no-cache-dir
 
 #=================================================
 # CONFIGURE SEARX
