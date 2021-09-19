@@ -7,7 +7,7 @@
 		"fr": "Méta-moteur de recherche respectueux de la vie privée et bidouillable", 
 		"de": "Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist"
 	},
-	"version": "1.0.0~ynh3",
+	"version": "1.0.0~ynh4",
 	"url": "https://searx.github.io/searx/",
 	"upstream": {
         "license": "AGPL-3.0-or-later",
