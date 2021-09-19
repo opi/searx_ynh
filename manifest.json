@@ -5,7 +5,7 @@
 	"description": {
 		"en": "Privacy-respecting, hackable metasearch engine",
 		"fr": "Méta-moteur de recherche respectueux de la vie privée et bidouillable", 
-		"de": "Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist."
+		"de": "Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist"
 	},
 	"version": "1.0.0~ynh3",
 	"url": "https://searx.github.io/searx/",
@@ -34,8 +34,7 @@
 		"install" : [
 			{
 				"name": "domain",
-				"type": "domain",
-				"example": "domain.org"
+				"type": "domain"
 			},
 			{
 				"name": "path",
