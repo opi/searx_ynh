@@ -28,7 +28,6 @@ Privacy-respecting, hackable metasearch engine
 ## Documentation and resources
 
 * Official app website: https://searx.github.io/searx/
-* Official user documentation: https://yunohost.org/apps
 * Official admin documentation: https://github.com/searx/searx/wiki
 * Upstream app code repository: https://github.com/searx/searx
 * YunoHost documentation for this app: https://yunohost.org/app_searx

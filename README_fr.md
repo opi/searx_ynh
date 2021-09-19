@@ -24,7 +24,6 @@ Méta-moteur de recherche respectueux de la vie privée et bidouillable
 ## Documentations et ressources
 
 * Site officiel de l'app : https://searx.github.io/searx/
-* Documentation officielle utilisateur : https://yunohost.org/apps
 * Documentation officielle de l'admin : https://github.com/searx/searx/wiki
 * Dépôt de code officiel de l'app : https://github.com/searx/searx
 * Documentation YunoHost pour cette app : https://yunohost.org/app_searx
