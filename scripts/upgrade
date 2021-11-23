@@ -83,7 +83,7 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Upgrading source files..." --weight=3
 
-# Create a temporary directory
+	# Create a temporary directory
   	tmpdir="$(mktemp -d)"
 
     # Backup the config file in the temp dir
@@ -97,7 +97,6 @@ then
 
   	# Remove the tmp directory securely
   	ynh_secure_remove --file="$tmpdir"
-
 fi
 
 #=================================================
@@ -138,7 +137,6 @@ pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 # ynh_script_progression --message="Configuring Searx..." --weight=2
 
 # secret_key=$(ynh_string_random)
-
 # ynh_add_config --template="../conf/settings.yml" --destination="$final_path/searx/settings.yml"
 
 #=================================================
