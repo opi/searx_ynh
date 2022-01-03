@@ -17,7 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Privacy-respecting, hackable metasearch engine
 
-**Shipped version:** 1.0.0~ynh4
+**Shipped version:** 1.0.0~ynh5
 
 **Demo:** https://demo.yunohost.org/searx/
 
