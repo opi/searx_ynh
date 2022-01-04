@@ -7,7 +7,7 @@
 		"fr": "Méta-moteur de recherche respectueux de la vie privée et bidouillable", 
 		"de": "Meta-Suchmaschine, die den Privatsphäre wahrt und 'hackable' ist"
 	},
-	"version": "1.0.0~ynh4",
+	"version": "1.0.0~ynh5",
 	"url": "https://searx.github.io/searx/",
 	"upstream": {
         "license": "AGPL-3.0-or-later",
@@ -22,7 +22,7 @@
 		"email": "opi@zeropi.net"
 	},
 	"requirements": {
-        "yunohost": ">= 4.2.4"
+        "yunohost": ">= 4.3.0"
 	},
 	"multi_instance": false,
 	"services": [
