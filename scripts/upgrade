@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
@@ -23,6 +23,7 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
 
@@ -34,12 +35,15 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-	# restore it if the upgrade fails
+	ynh_clean_check_starting
+	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
+#=================================================
+# STANDARD UPGRADE STEPS
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
@@ -57,15 +61,6 @@ if ynh_legacy_permissions_exists; then
 
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=7
-
-ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # CREATE DEDICATED USER
@@ -109,6 +104,13 @@ path_no_root=${path_url%/}
 ynh_add_nginx_config "path_no_root"
 
 #=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..." --weight=7
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
 # SPECIFIC UPGRADE
 #=================================================
 # UPGRADE SEARX IN ITS VIRTUALENV
@@ -131,6 +133,8 @@ set +u; source $final_path/bin/activate; set -u
 pip3 install -U setuptools
 pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 
+chown -R $app: "$final_path"
+
 #=================================================
 # CONFIGURE SEARX
 #=================================================
@@ -138,14 +142,6 @@ pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
 
 # secret_key=$(ynh_string_random)
 # ynh_add_config --template="../conf/settings.yml" --destination="$final_path/searx/settings.yml"
-
-#=================================================
-# GENERIC FINALISATION
-#=================================================
-# SECURING FILES AND DIRECTORIES
-#=================================================
-
-chown -R $app: "$final_path"
 
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
@@ -158,9 +154,11 @@ ynh_secure_remove --file="/etc/uwsgi/apps-available/$app.ini"
 ynh_add_uwsgi_service
 
 #=================================================
-# CHECK SEARX STARTING
+# GENERIC FINALISATION
 #=================================================
-ynh_script_progression --message="Restarting Searx..." --weight=3
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=3
 
 # Wait for searx to be fully started
 ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
@@ -176,4 +174,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of Searx completed" --last
+ynh_script_progression --message="Upgrade of $app completed" --last
