@@ -2,7 +2,7 @@
 certifi==2020.12.05
 babel==2.9.1
 flask-babel==2.0.0
-flask==1.1.2
+flask==1.1.4
 idna==2.10
 jinja2==2.11.3
 lxml==4.6.3
@@ -12,6 +12,7 @@ pyyaml==5.4.1
 requests[socks]==2.25.1
 langdetect==1.0.8
 # cryptography==3.2
+markupsafe==2.0.1
 
 # # Additionnals requirements
 # markupsafe>=0.23
