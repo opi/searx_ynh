@@ -83,7 +83,7 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Restoring various files..."
 
 ynh_restore_file --origin_path="/etc/uwsgi/apps-available/$app.ini"
-ynh_restore_file --origin_path="/var/log/uwsgi/$app"
+mkdir -p "/var/log/uwsgi/$app"
 chown $app:root /var/log/uwsgi/$app
 ynh_check_global_uwsgi_config
 systemctl enable "uwsgi-app@$app.service" --quiet
