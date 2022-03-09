@@ -62,6 +62,10 @@ if ynh_legacy_permissions_exists; then
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
+mkdir -p /var/log/uwsgi/$app
+chown $app:root /var/log/uwsgi/$app
+chmod -R u=rwX,g=rX,o= /var/log/uwsgi/$app
+
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
