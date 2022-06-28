@@ -132,7 +132,7 @@ ynh_remove_uwsgi_service () {
     fi
     if [ -e /etc/init.d/uwsgi ]
     then
-	    # Redémarre le service uwsgi si il n'est pas désinstallé.
+	    # RedÃ©marre le service uwsgi si il n'est pas dÃ©sinstallÃ©.
 	    ynh_systemd_action --service_name=uwsgi --action=start
     else
 	    if yunohost service status | grep -q uwsgi
