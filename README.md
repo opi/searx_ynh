@@ -5,7 +5,7 @@ It shall NOT be edited by hand.
 
 # Searx for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![Working status](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)  
 [![Install Searx with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=searx)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -17,31 +17,37 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Privacy-respecting, hackable metasearch engine
 
-**Shipped version:** 1.0.0~ynh5
+
+**Shipped version:** 1.0.0~ynh6
 
 **Demo:** https://demo.yunohost.org/searx/
 
 ## Screenshots
 
-![](./doc/screenshots/Screenshot.png)
+![Screenshot of Searx](./doc/screenshots/Screenshot.png)
+
+## Disclaimers / important information
+
+
 
 ## Documentation and resources
 
-* Official app website: https://searx.github.io/searx/
-* Official admin documentation: https://github.com/searx/searx/wiki
-* Upstream app code repository: https://github.com/searx/searx
-* YunoHost documentation for this app: https://yunohost.org/app_searx
-* Report a bug: https://github.com/YunoHost-Apps/searx_ynh/issues
+* Official app website: <https://searx.github.io/searx/>
+* Official admin documentation: <https://github.com/searx/searx/wiki>
+* Upstream app code repository: <https://github.com/searx/searx>
+* YunoHost documentation for this app: <https://yunohost.org/app_searx>
+* Report a bug: <https://github.com/YunoHost-Apps/searx_ynh/issues>
 
 ## Developer info
 
 Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/searx_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
-```
+
+``` bash
 sudo yunohost app install https://github.com/YunoHost-Apps/searx_ynh/tree/testing --debug
 or
 sudo yunohost app upgrade searx -u https://github.com/YunoHost-Apps/searx_ynh/tree/testing --debug
 ```
 
-**More info regarding app packaging:** https://yunohost.org/packaging_apps
+**More info regarding app packaging:** <https://yunohost.org/packaging_apps>
