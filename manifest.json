@@ -18,8 +18,8 @@
     },
     "license": "AGPL-3.0-or-later",
     "maintainer": {
-        "name": "opi",
-        "email": "opi@zeropi.net"
+        "name": "",
+        "email": ""
     },
     "requirements": {
         "yunohost": ">= 4.3.0"
