@@ -130,6 +130,17 @@ ynh_remove_uwsgi_service () {
         ynh_secure_remove --file="/var/log/uwsgi/$app"
         ynh_secure_remove --file="/etc/systemd/system/uwsgi-app@$app.service.d"
     fi
+    if [ -e /etc/init.d/uwsgi ]
+    then
+	    # Redémarre le service uwsgi si il n'est pas désinstallé.
+	    ynh_systemd_action --service_name=uwsgi --action=start
+    else
+	    if yunohost service status | grep -q uwsgi
+	    then
+		    ynh_print_info --message="Remove uwsgi service"
+		    yunohost service remove uwsgi
+	    fi
+    fi
 }
 
 
