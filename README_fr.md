@@ -18,7 +18,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 Privacy-respecting, hackable metasearch engine
 
 
-**Version incluse :** 1.0.0~ynh6
+**Version incluse :** 1.1.0~ynh1
 
 **Démo :** https://demo.yunohost.org/searx/
 
