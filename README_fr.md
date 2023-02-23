@@ -5,27 +5,27 @@ It shall NOT be edited by hand.
 
 # Searx pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)  
+[![Niveau d’intégration](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)
+
 [![Installer Searx avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=searx)
 
 *[Read this readme in english.](./README.md)*
 
-> *Ce package vous permet d'installer Searx rapidement et simplement sur un serveur YunoHost.
-Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
+> *Ce package vous permet d’installer Searx rapidement et simplement sur un serveur YunoHost.
+Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l’installer et en profiter.*
 
-## Vue d'ensemble
+## Vue d’ensemble
 
 Privacy-respecting, hackable metasearch engine
 
 
-**Version incluse :** 1.1.0~ynh1
-
+**Version incluse :** 1.1.0~ynh1
 
 **Démo :** https://demo.yunohost.org/searx/
 
-## Captures d'écran
+## Captures d’écran
 
-![Capture d'écran de Searx](./doc/screenshots/Screenshot.png)
+![Capture d’écran de Searx](./doc/screenshots/Screenshot.png)
 
 ## Avertissements / informations importantes
 
@@ -33,9 +33,9 @@ Privacy-respecting, hackable metasearch engine
 
 ## Documentations et ressources
 
-* Site officiel de l'app : <https://searx.github.io/searx/>
-* Documentation officielle de l'admin : <https://github.com/searx/searx/wiki>
-* Dépôt de code officiel de l'app : <https://github.com/searx/searx>
+* Site officiel de l’app : <https://searx.github.io/searx/>
+* Documentation officielle de l’admin : <https://github.com/searx/searx/wiki>
+* Dépôt de code officiel de l’app : <https://github.com/searx/searx>
 * Documentation YunoHost pour cette app : <https://yunohost.org/app_searx>
 * Signaler un bug : <https://github.com/YunoHost-Apps/searx_ynh/issues>
 
@@ -51,4 +51,4 @@ ou
 sudo yunohost app upgrade searx -u https://github.com/YunoHost-Apps/searx_ynh/tree/testing --debug
 ```
 
-**Plus d'infos sur le packaging d'applications :** <https://yunohost.org/packaging_apps>
+**Plus d’infos sur le packaging d’applications :** <https://yunohost.org/packaging_apps>
