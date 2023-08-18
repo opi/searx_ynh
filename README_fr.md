@@ -27,10 +27,6 @@ Privacy-respecting, hackable metasearch engine
 
 ![Capture d’écran de Searx](./doc/screenshots/Screenshot.png)
 
-## Avertissements / informations importantes
-
-
-
 ## Documentations et ressources
 
 * Site officiel de l’app : <https://searx.github.io/searx/>
