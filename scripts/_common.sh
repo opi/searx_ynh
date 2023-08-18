@@ -5,7 +5,7 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies="git build-essential libxslt-dev python3-dev python3-venv python3-cffi python3-babel zlib1g-dev libffi-dev libssl-dev python3-lxml uwsgi uwsgi-plugin-python3 shellcheck"
+#REMOVEME? pkg_dependencies="git build-essential libxslt-dev python3-dev python3-venv python3-cffi python3-babel zlib1g-dev libffi-dev libssl-dev python3-lxml uwsgi uwsgi-plugin-python3 shellcheck"
 
 #=================================================
 # UWSGI HELPERS
@@ -51,8 +51,8 @@ EOF
 # this helper :
 #
 #   __APP__       by  $app
-#   __PATH__      by  $path_url
-#   __FINALPATH__ by  $final_path
+#   __PATH__      by  $path
+#   __INSTALL_DIR__ by  $install_dir
 #
 #  And dynamic variables (from the last example) :
 #   __PATH_2__    by $path_2
@@ -78,11 +78,11 @@ ynh_add_uwsgi_service () {
 
     # To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
     # Substitute in a nginx config file only if the variable is not empty
-    if test -n "${final_path:-}"; then
-        ynh_replace_string --match_string "__FINALPATH__" --replace_string "$final_path" --target_file "$finaluwsgiini"
+    if test -n "${install_dir:-}"; then
+        ynh_replace_string --match_string "__INSTALL_DIR__" --replace_string "$install_dir" --target_file "$finaluwsgiini"
     fi
-    if test -n "${path_url:-}"; then
-        ynh_replace_string --match_string "__PATH__" --replace_string "$path_url" --target_file "$finaluwsgiini"
+    if test -n "${path:-}"; then
+        ynh_replace_string --match_string "__PATH__" --replace_string "$path" --target_file "$finaluwsgiini"
     fi
     if test -n "${app:-}"; then
         ynh_replace_string --match_string "__APP__" --replace_string "$app" --target_file "$finaluwsgiini"

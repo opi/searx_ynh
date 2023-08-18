@@ -1,7 +1,0 @@
-SOURCE_URL=https://github.com/searx/searx/archive/refs/tags/v1.1.0.tar.gz
-SOURCE_SUM=fc17371a02ee1d73896c2ac9c55b1ec90e5171fd2eea060b8867fc7efb63d725
-SOURCE_SUM_PRG=sha256sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=searx.tar.gz
-SOURCE_EXTRACT=true
