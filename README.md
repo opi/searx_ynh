@@ -5,7 +5,8 @@ It shall NOT be edited by hand.
 
 # Searx for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![Working status](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/searx.svg)](https://dash.yunohost.org/appci/app/searx) ![Working status](https://ci-apps.yunohost.org/ci/badges/searx.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/searx.maintain.svg)
+
 [![Install Searx with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=searx)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -19,7 +20,6 @@ Privacy-respecting, hackable metasearch engine
 
 
 **Shipped version:** 1.1.0~ynh1
-
 
 **Demo:** https://demo.yunohost.org/searx/
 
