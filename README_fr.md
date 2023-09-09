@@ -34,6 +34,10 @@ Installation is discouraged.
 
 SearXNG is a potential alternative, already packaged for YunoHost.
 
+## :red_circle: Fonctions indésirables
+
+- **Upstream not maintained**: This software is not maintained anymore. Expect it to break down over time, be exposed to unfixed security breaches, etc.
+
 ## Documentations et ressources
 
 * Site officiel de l’app : <https://searx.github.io/searx/>
