@@ -20,11 +20,6 @@ ynh_script_progression --message="Stopping and removing the systemd service..." 
 ynh_systemd_action --service_name "uwsgi-app@$app.service" --action stop
 ynh_remove_uwsgi_service
 
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..." --weight=2
-
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
