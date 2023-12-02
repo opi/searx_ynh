@@ -67,20 +67,24 @@ ynh_add_nginx_config "path_no_root"
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
 # Clean venv if it still on python2
-if [ ! -e $install_dir/bin/python3 ]
+if [ -e $install_dir/bin ] && [ ! -e $install_dir/bin/python3 ]
 then
 	ynh_regex_secure_remove --file=$install_dir/lib/ --regex='python[^/.]*'
 	ynh_regex_secure_remove --file=$install_dir/lib64/ --regex='python[^/.]*'
 	ynh_regex_secure_remove --file=$install_dir/share/python-wheels
 fi
+
 ynh_regex_secure_remove --file=$install_dir/lib/python3/site-packages/setuptools
 ynh_regex_secure_remove --file=$install_dir/lib/python3/site-packages/ --regex='setuptools-[^/.]*'
 
-python3 -m venv --system-site-packages "$install_dir"
+ynh_regex_secure_remove --file=$install_dir/venv/lib/python3/site-packages/setuptools
+ynh_regex_secure_remove --file=$install_dir/venv/lib/python3/site-packages/ --regex='setuptools-[^/.]*'
 
-set +u; source $install_dir/bin/activate; set -u
-pip3 install -U setuptools
-pip3 install --requirement $install_dir/requirements-ynh.txt --upgrade
+pushd $install_dir
+    python3 -m venv venv
+    venv/bin/pip3 install -U pip setuptools wheel pyyaml --no-cache-dir
+    venv/bin/pip3 install --requirement $install_dir/requirements-ynh.txt --no-cache-dir
+popd
 
 chown -R $app: "$install_dir"
 
