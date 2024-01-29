@@ -37,9 +37,9 @@ ynh_add_nginx_config "path_no_root"
 ynh_script_progression --message="Installing Searx..." --weight=2
 
 pushd $install_dir
-    python3 -m venv venv
-    venv/bin/pip3 install -U pip setuptools wheel pyyaml --no-cache-dir
-    venv/bin/pip3 install --requirement $install_dir/requirements-ynh.txt --no-cache-dir
+    python3 -m venv --upgrade "$install_dir/venv"
+    ynh_exec_as "$app" venv/bin/pip3 install -U pip setuptools wheel pyyaml --no-cache-dir
+    ynh_exec_as "$app" venv/bin/pip3 install --requirement $install_dir/requirements-ynh.txt --no-cache-dir
 popd
 
 #=================================================
