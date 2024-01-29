@@ -46,9 +46,11 @@ ram.runtime = "50M"
     default = "visitors"
 
 [resources]
-        [resources.sources.main]
-        url = "https://github.com/searx/searx/archive/refs/tags/v1.1.0.tar.gz"
-        sha256 = "fc17371a02ee1d73896c2ac9c55b1ec90e5171fd2eea060b8867fc7efb63d725"
+    [resources.sources.main]
+    url = "https://github.com/searx/searx/archive/refs/tags/v1.1.0.tar.gz"
+    sha256 = "fc17371a02ee1d73896c2ac9c55b1ec90e5171fd2eea060b8867fc7efb63d725"
+
+    autoupdate.strategy = "latest_github_tag"
 
     [resources.system_user]
 
