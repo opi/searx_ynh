@@ -15,10 +15,10 @@ source /usr/share/yunohost/helpers
 ynh_script_progression --message="Setting up source files..." --weight=2
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir"
+ynh_setup_source --dest_dir="$install_dir/source"
 
 chmod -R o-rwx "$install_dir"
-chown -R $app: "$install_dir"
+chown -R "$app:" "$install_dir"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -50,13 +50,13 @@ popd
 ynh_script_progression --message="Configuring Searx..." --weight=2
 
 secret_key=$(ynh_string_random)
-ynh_add_config --template="settings.yml" --destination="$install_dir/searx/settings.yml"
+ynh_add_config --template="settings.yml" --destination="$install_dir/source/searx/settings.yml"
 
 #=================================================
 # SET PERMISSIONS ON SEARX DIRECTORY
 #=================================================
 
-chown -R $app: $install_dir
+chown -R "$app:" "$install_dir"
 
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
@@ -73,7 +73,7 @@ ynh_add_uwsgi_service
 ynh_script_progression --message="Starting a systemd service..." --weight=4
 
 # Start a systemd service
-ynh_systemd_action --service_name=uwsgi-app@$app.service --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
+ynh_systemd_action --service_name="uwsgi-app@$app.service" --action=start --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # END OF SCRIPT
