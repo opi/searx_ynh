@@ -4,8 +4,18 @@
 # COMMON VARIABLES
 #=================================================
 
-# dependencies used by the app
-pkg_dependencies="git build-essential libxslt-dev python3-dev python3-venv python3-cffi python3-babel zlib1g-dev libffi-dev libssl-dev python3-lxml uwsgi uwsgi-plugin-python3 shellcheck"
+#=================================================
+# PERSONAL HELPERS
+#=================================================
+
+_searx_venv_install() {
+    ynh_exec_as "$app" python3 -m venv --upgrade "$install_dir/venv"
+    venvpy="$install_dir/venv/bin/python3"
+
+    ynh_exec_as "$app" "$venvpy" -m pip install --upgrade --no-cache-dir pip
+
+    ynh_exec_as "$app" "$venvpy" -m pip install setuptools wheel pyyaml
+}
 
 #=================================================
 # UWSGI HELPERS
@@ -51,8 +61,8 @@ EOF
 # this helper :
 #
 #   __APP__       by  $app
-#   __PATH__      by  $path_url
-#   __FINALPATH__ by  $final_path
+#   __PATH__      by  $path
+#   __INSTALL_DIR__ by  $install_dir
 #
 #  And dynamic variables (from the last example) :
 #   __PATH_2__    by $path_2
@@ -78,11 +88,11 @@ ynh_add_uwsgi_service () {
 
     # To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
     # Substitute in a nginx config file only if the variable is not empty
-    if test -n "${final_path:-}"; then
-        ynh_replace_string --match_string "__FINALPATH__" --replace_string "$final_path" --target_file "$finaluwsgiini"
+    if test -n "${install_dir:-}"; then
+        ynh_replace_string --match_string "__INSTALL_DIR__" --replace_string "$install_dir" --target_file "$finaluwsgiini"
     fi
-    if test -n "${path_url:-}"; then
-        ynh_replace_string --match_string "__PATH__" --replace_string "$path_url" --target_file "$finaluwsgiini"
+    if test -n "${path:-}"; then
+        ynh_replace_string --match_string "__PATH__" --replace_string "$path" --target_file "$finaluwsgiini"
     fi
     if test -n "${app:-}"; then
         ynh_replace_string --match_string "__APP__" --replace_string "$app" --target_file "$finaluwsgiini"
@@ -92,7 +102,7 @@ ynh_add_uwsgi_service () {
     for var_to_replace in $others_var
     do
         # ${var_to_replace^^} make the content of the variable on upper-cases
-        # ${!var_to_replace} get the content of the variable named $var_to_replace 
+        # ${!var_to_replace} get the content of the variable named $var_to_replace
         ynh_replace_string --match_string "__${var_to_replace^^}__" --replace_string "${!var_to_replace}" --target_file "$finaluwsgiini"
     done
 
@@ -235,7 +245,7 @@ ynh_regex_secure_remove () {
                 if [ -z "$regex" ]
                 then
                     ynh_print_info --message="'$file_to_remove' wasn't deleted because it doesn't exist."
-                fi  
+                fi
             fi
         fi
     done <<< "$(echo "$files_to_remove")"

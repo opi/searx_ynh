@@ -16,7 +16,12 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 ## Overview
 
-Privacy-respecting, hackable metasearch engine
+Privacy-respecting, hackable metasearch engine.
+
+As of 2023-09-07, SearX is now unmaintained upstream (cf. [commit](https://github.com/searx/searx/commit/276ffd3f01cdd823f75676c51231fad4040059d3)).
+Installation is discouraged.
+
+SearXNG is a potential alternative, already packaged for YunoHost.
 
 
 **Shipped version:** 1.1.0~ynh2
@@ -27,13 +32,6 @@ Privacy-respecting, hackable metasearch engine
 
 ![Screenshot of Searx](./doc/screenshots/Screenshot.png)
 
-## Disclaimers / important information
-
-As of 2023-09-07, SearX is now unmaintained upstream (cf. [commit](https://github.com/searx/searx/commit/276ffd3f01cdd823f75676c51231fad4040059d3)). 
-Installation is discouraged.
-
-SearXNG is a potential alternative, already packaged for YunoHost.
-
 ## :red_circle: Antifeatures
 
 - **Upstream not maintained**: This software is not maintained anymore. Expect it to break down over time, be exposed to unfixed security breaches, etc.
@@ -43,7 +41,7 @@ SearXNG is a potential alternative, already packaged for YunoHost.
 * Official app website: <https://searx.github.io/searx/>
 * Official admin documentation: <https://github.com/searx/searx/wiki>
 * Upstream app code repository: <https://github.com/searx/searx>
-* YunoHost documentation for this app: <https://yunohost.org/app_searx>
+* YunoHost Store: <https://apps.yunohost.org/app/searx>
 * Report a bug: <https://github.com/YunoHost-Apps/searx_ynh/issues>
 
 ## Developer info

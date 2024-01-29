@@ -10,107 +10,40 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading installation settings..."
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-
-#=================================================
-# CHECK VERSION
-#=================================================
-ynh_script_progression --message="Checking version..."
-
-upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=2
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	ynh_clean_check_starting
-	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
 
-# If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
-	final_path=/var/www/$app
-	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+if [ -f "$install_dir/setup.py" ]; then
+    # Clean up the whole install_dir except settings.yml
+    tmpdir="$(mktemp -d)"
+    cp "$install_dir/searx/settings.yml" "$tmpdir"
+    ynh_secure_remove "$install_dir"
+    mkdir -p "$install_dir"
+    chmod 750 "$install_dir"
+    chown "$app:" "$install_dir"
+    mkdir -p "$install_dir/source/searx"
+    cp "$tmpdir/settings.yml" "$install_dir/source/searx"
+    ynh_secure_remove --file="$tmpdir"
 fi
 
-# Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
-
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
-
-mkdir -p /var/log/uwsgi/$app
-chown $app:root /var/log/uwsgi/$app
-chmod -R u=rwX,g=rX,o= /var/log/uwsgi/$app
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression --message="Upgrading source files..." --weight=3
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
-then
-	ynh_script_progression --message="Upgrading source files..." --weight=3
-
-	# Create a temporary directory
-	tmpdir="$(mktemp -d)"
-
-	# Backup the config file in the temp dir
-	cp -a "$final_path/searx/settings.yml" "$tmpdir/settings.yml"
-
-	# Download, check integrity, uncompress and patch the source from app.src
-	ynh_setup_source --dest_dir="$final_path"
-
-	# Copy the admin saved settings from tmp directory to final path
-	cp -a "$tmpdir/settings.yml" "$final_path/searx/settings.yml"
-
-	# Remove the tmp directory securely
-	ynh_secure_remove --file="$tmpdir"
-fi
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source --dest_dir="$install_dir/source" --full_replace=1 --keep="searx/settings.yml"
 
 #=================================================
-# UPGRADE DEPENDENCIES
+# REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=7
+ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
 
-ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
-
-path_no_root=${path_url%/}
+path_no_root=${path%/}
 # Create a dedicated NGINX config
 ynh_add_nginx_config "path_no_root"
 
@@ -121,23 +54,11 @@ ynh_add_nginx_config "path_no_root"
 #=================================================
 ynh_script_progression --message="Upgrading Searx..." --weight=7
 
-# Clean venv if it still on python2
-if [ ! -e $final_path/bin/python3 ]
-then
-	ynh_regex_secure_remove --file=$final_path/lib/ --regex='python[^/.]*'
-	ynh_regex_secure_remove --file=$final_path/lib64/ --regex='python[^/.]*'
-	ynh_regex_secure_remove --file=$final_path/share/python-wheels
-fi
-ynh_regex_secure_remove --file=$final_path/lib/python3/site-packages/setuptools
-ynh_regex_secure_remove --file=$final_path/lib/python3/site-packages/ --regex='setuptools-[^/.]*'
+_searx_venv_install
 
-python3 -m venv --system-site-packages "$final_path"
+ynh_add_config --template="requirements-ynh.txt" --destination="$install_dir/requirements-ynh.txt"
 
-set +u; source $final_path/bin/activate; set -u
-pip3 install -U setuptools
-pip3 install --requirement $final_path/requirements-ynh.txt --upgrade
-
-chown -R $app: "$final_path"
+ynh_exec_as "$app" "$venvpy" -m pip install --requirement "$install_dir/requirements-ynh.txt" --no-cache-dir
 
 #=================================================
 # CONFIGURE SEARX
@@ -145,7 +66,7 @@ chown -R $app: "$final_path"
 # ynh_script_progression --message="Configuring Searx..." --weight=2
 
 # secret_key=$(ynh_string_random)
-# ynh_add_config --template="../conf/settings.yml" --destination="$final_path/searx/settings.yml"
+# ynh_add_config --template="settings.yml" --destination="$install_dir/source/searx/settings.yml"
 
 #=================================================
 # CONFIGURE UWSGI FOR SEARX
@@ -165,14 +86,7 @@ ynh_add_uwsgi_service
 ynh_script_progression --message="Starting a systemd service..." --weight=3
 
 # Wait for searx to be fully started
-ynh_systemd_action --service_name=uwsgi-app@$app.service --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemd_action --service_name="uwsgi-app@$app.service" --action=restart --line_match="spawned uWSGI master process" --log_path="/var/log/uwsgi/$app/$app.log"
 
 #=================================================
 # END OF SCRIPT
