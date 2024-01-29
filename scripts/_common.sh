@@ -5,6 +5,19 @@
 #=================================================
 
 #=================================================
+# PERSONAL HELPERS
+#=================================================
+
+_searx_venv_install() {
+    ynh_exec_as "$app" python3 -m venv --upgrade "$install_dir/venv"
+    venvpy="$install_dir/venv/bin/python3"
+
+    ynh_exec_as "$app" "$venvpy" -m pip install --upgrade --no-cache-dir pip
+
+    ynh_exec_as "$app" "$venvpy" -m pip install setuptools wheel pyyaml
+}
+
+#=================================================
 # UWSGI HELPERS
 #=================================================
 
@@ -89,7 +102,7 @@ ynh_add_uwsgi_service () {
     for var_to_replace in $others_var
     do
         # ${var_to_replace^^} make the content of the variable on upper-cases
-        # ${!var_to_replace} get the content of the variable named $var_to_replace 
+        # ${!var_to_replace} get the content of the variable named $var_to_replace
         ynh_replace_string --match_string "__${var_to_replace^^}__" --replace_string "${!var_to_replace}" --target_file "$finaluwsgiini"
     done
 
@@ -232,7 +245,7 @@ ynh_regex_secure_remove () {
                 if [ -z "$regex" ]
                 then
                     ynh_print_info --message="'$file_to_remove' wasn't deleted because it doesn't exist."
-                fi  
+                fi
             fi
         fi
     done <<< "$(echo "$files_to_remove")"
