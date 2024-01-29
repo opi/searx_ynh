@@ -38,6 +38,8 @@ ynh_script_progression --message="Installing Searx..." --weight=2
 
 _searx_venv_install
 
+ynh_add_config --template="requirements-ynh.txt" --destination="$install_dir/requirements-ynh.txt"
+
 pushd "$install_dir"
     ynh_exec_as "$app" "$venvpy" -m pip install --requirement ./requirements-ynh.txt --no-cache-dir
 popd
